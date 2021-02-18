@@ -9,16 +9,13 @@ import pybullet_data
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.loadURDF("plane.urdf", [0, 0, -0.3], useFixedBase=True)
-kukaId = p.loadURDF("va_kuka/model.urdf", [0, 0, 0], useFixedBase=True)
+kukaId = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
 p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
+print("heyyyy", kukaId)
 kukaEndEffectorIndex = 6
 numJoints = p.getNumJoints(kukaId)
 if (numJoints != 7):
   exit()
-
-p.loadURDF("cube.urdf", [2, 2, 5])
-p.loadURDF("cube.urdf", [-2, -2, 5])
-p.loadURDF("cube.urdf", [2, -2, 5])
 
 #lower limits for null space
 ll = [-.967, -2, -2.96, 0.19, -2.96, -2.09, -3.05]
@@ -53,7 +50,7 @@ trailDuration = 15
 logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
 logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
 
-for i in range(5):
+for i in range(2):
   print("Body %d's name is %s." % (i, p.getBodyInfo(i)[1]))
 
 while 1:
