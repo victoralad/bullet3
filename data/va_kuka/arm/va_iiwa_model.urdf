@@ -62,10 +62,6 @@
   <arg name="origin_rpy" default="0 0 0"/>
   <arg name="robotNamespace" default="iiwa"/>
 
-  <robotiq_ft300 prefix="$(arg robot_name)_" parent="$(arg robot_name)_link_ft_sensor_mount">
-    <origin xyz="$(arg origin_xyz)" rpy="$(arg origin_rpy)" />
-  </robotiq_ft300>
-
   <robotiq_85_gripper prefix="$(arg robot_name)_" parent="$(arg robot_name)_robotiq_ft_frame_id" robotNS="$(arg robotNamespace)">
     <origin xyz="$(arg origin_xyz)" rpy="0 -1.571 0" />
   </robotiq_85_gripper>
@@ -312,8 +308,80 @@
         </geometry>
       </collision>
     </link>
+    <!-- Joint to connect link 7 to ft_sensor mount -->
+    <joint name="iiwa7_joint_ft_mount" type="fixed">
+      <parent link="lbr_iiwa_link_7"/>
+      <child link="iiwa7_link_ft300_mounting_plate"/>
+      <origin xyz="0 0 0.0415" rpy="0 0 0"/>
+    </joint>
+
+
+    <!-- ========================================= Force sensor starts here ======================================== -->
     
-  <!-- </xacro:macro> -->
+    <!-- Link representing the FT300 mounting plate -->
+    <link name="iiwa7_link_ft300_mounting_plate">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_ft_sensor/meshes/visual/mountings/robotiq_ft300-G-062-COUPLING_G-50-4M6-1D6_20181119.STL"/>
+            </geometry>
+            <material name="Robotiq-Grey">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_ft_sensor/meshes/collision/mountings/robotiq_ft300-G-062-COUPLING_G-50-4M6-1D6_20181119.STL"/>
+            </geometry>
+        </collision>
+    </link>
+
+        <!-- Connect force sensor with mounting/coupling plate -->
+    <joint name="iiwa7_joint_ft300_mounting_plate" type="fixed">
+        <origin xyz="0 0 0.0415" rpy="0 ${pi} 0"/> 
+        <parent link="iiwa7_link_ft300_mounting_plate" />
+        <child link="iiwa7_link_ft300_sensor" />
+    </joint>
+
+        <!-- Link representing the FT300 force-torque sensor -->
+    <link name="iiwa7_link_ft300_sensor">
+        <inertial>
+            <origin xyz="0 0 ${-17 / 1000}" rpy="0 0 0"/>
+            <mass value="0.300"/>
+            <inertia ixx="${262 / 1000000}" ixy="0" ixz="${1 / 1000000}" iyy="${265 / 1000000}" iyx="0" iyz="${1 / 1000000}" izz="${219 / 1000000}" izx="${-1 / 1000000}" izy="${1 / 1000000}"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_ft_sensor/meshes/visual/robotiq_ft300.STL"/>
+            </geometry>
+            <material name="Robotiq-Black">
+                <color rgba="0.2 0.2 0.2 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://robotiq_ft_sensor/meshes/collision/robotiq_ft300.STL"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- FORCE REFERENCE FRAME _______________________________________________________________________________
+        As specified in the documentation:
+        - The Z axis passes through the center of the depression with positive direction in the tool direction.
+        - The X axis traces a symmetric line centered on the connector; the positive direction
+            points the opposite way away from the connector.
+        - The Y axis uses the right hand thumb rule according to X-Z. -->
+    <joint name="iiwa7_measurement_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 ${pi} ${-pi/2}" />
+        <parent link="iiwa7_ft300_sensor" />
+        <child link="iiwa7_robotiq_ft_frame_id" />
+    </joint>
+
+    <link name="iiwa7_robotiq_ft_frame_id"/>
   
 </robot>
 
