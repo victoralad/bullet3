@@ -9,9 +9,8 @@ import pybullet_data
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.loadURDF("plane.urdf", [0, 0, -0.3], useFixedBase=True)
-kukaId = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
+kukaId = p.loadURDF("va_kuka/arm/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
 p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
-print("heyyyy", kukaId)
 kukaEndEffectorIndex = 6
 numJoints = p.getNumJoints(kukaId)
 if (numJoints != 7):
