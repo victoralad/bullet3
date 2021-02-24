@@ -308,7 +308,7 @@
     <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-            <mesh filename="robotiq_ft_sensor/meshes/visual/mountings/robotiq_ft300-G-062-COUPLING_G-50-4M6-1D6_20181119.STL"/>
+            <mesh filename="robotiq_ft300_sensor/meshes/visual/mountings/robotiq_ft300-G-062-COUPLING_G-50-4M6-1D6_20181119.STL"/>
         </geometry>
         <material name="Robotiq-Grey">
             <color rgba="0.4 0.4 0.4 1.0"/>
@@ -318,7 +318,7 @@
     <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-            <mesh filename="robotiq_ft_sensor/meshes/collision/mountings/robotiq_ft300-G-062-COUPLING_G-50-4M6-1D6_20181119.STL"/>
+            <mesh filename="robotiq_ft300_sensor/meshes/collision/mountings/robotiq_ft300-G-062-COUPLING_G-50-4M6-1D6_20181119.STL"/>
         </geometry>
     </collision>
   </link>
@@ -340,7 +340,7 @@
       <visual>
           <origin xyz="0 0 0" rpy="0 0 0" />
           <geometry>
-              <mesh filename="robotiq_ft_sensor/meshes/visual/robotiq_ft300.STL"/>
+              <mesh filename="robotiq_ft300_sensor/meshes/visual/robotiq_ft300.STL"/>
           </geometry>
           <material name="Robotiq-Black">
               <color rgba="0.2 0.2 0.2 1.0"/>
@@ -349,7 +349,7 @@
       <collision>
           <origin xyz="0 0 0" rpy="0 0 0" />
           <geometry>
-              <mesh filename="robotiq_ft_sensor/meshes/collision/robotiq_ft300.STL"/>
+              <mesh filename="robotiq_ft300_sensor/meshes/collision/robotiq_ft300.STL"/>
           </geometry>
       </collision>
   </link>
@@ -360,13 +360,251 @@
       - The X axis traces a symmetric line centered on the connector; the positive direction
           points the opposite way away from the connector.
       - The Y axis uses the right hand thumb rule according to X-Z. -->
-  <!-- <joint name="iiwa7_measurement_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="0 ${pi} ${-pi/2}" />
-      <parent link="iiwa7_ft300_sensor" />
-      <child link="iiwa7_robotiq_ft_frame_id" />
-  </joint>
-
-  <link name="iiwa7_robotiq_ft_frame_id"/> -->
   
+    <joint name="iiwa7_gripper_base_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 -1.571 0" />
+      <parent link="iiwa7_link_ft300_sensor"/>
+      <child link="iiwa7_gripper_base_link"/>
+    </joint>
+
+  <!-- ========================================= Gripper starts here ======================================== -->
+
+    <link name="iiwa7_gripper_base_link">
+        <visual>
+            <geometry>
+                <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_base_link.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_base_link.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.636951" />
+            <origin xyz="0.0 0.0 0.0" />
+            <inertia ixx = "0.000380" ixy = "0.000000" ixz = "0.000000"
+                      iyx = "0.000000" iyy = "0.001110" iyz = "0.000000"
+                      izx = "0.000000" izy = "0.000000" izz = "0.001171" />
+        </inertial>
+    </link>
+    <joint name="iiwa7_gripper_finger1_joint" type="revolute">
+        <parent link="iiwa7_gripper_base_link"/>
+        <child link="iiwa7_gripper_finger1_knuckle_link"/>
+        <axis xyz="0 0 1"/>
+        <origin rpy="${pi} 0.0 0.0" xyz="0.05490451627 0.03060114443 0.0"/>
+        <limit lower="0.0" upper="0.804" velocity="2.0" effort="1000"/>
+        <mimic joint="iiwa7_gripper_finger1_inner_knuckle_joint" offset="0"/>
+    </joint>
+
+    <joint name="iiwa7_gripper_finger2_joint" type="revolute">
+        <parent link="iiwa7_gripper_base_link"/>
+        <child link="iiwa7_gripper_finger2_knuckle_link"/>
+        <axis xyz="0 0 1"/>
+        <origin rpy="0.0 0.0 0.0" xyz="0.05490451627 -0.03060114443 0.0"/>
+        <limit lower="0.0" upper="1.0" velocity="100.0" effort="1000"/>
+        <mimic joint="iiwa7_gripper_finger1_inner_knuckle_joint" offset="0" multiplier="1"/>
+    </joint>
+
+    <link name="iiwa7_gripper_finger1_knuckle_link">
+        <visual>
+            <geometry>
+                <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_knuckle_link.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_knuckle_link.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.018491" />
+            <origin xyz="0.0 0.0 0.0" />
+            <inertia ixx = "0.000009" ixy = "-0.000001" ixz = "0.000000"
+                      iyx = "-0.000001" iyy = "0.000001" iyz = "0.000000"
+                      izx = "0.000000" izy = "0.000000" izz = "0.000010" />
+        </inertial>
+    </link>
+    <link name="iiwa7_gripper_finger2_knuckle_link">
+        <visual>
+            <geometry>
+                <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_knuckle_link.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_knuckle_link.stl"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.018491" />
+            <origin xyz="0.0 0.0 0.0" />
+            <inertia ixx = "0.000009" ixy = "-0.000001" ixz = "0.000000"
+                      iyx = "-0.000001" iyy = "0.000001" iyz = "0.000000"
+                      izx = "0.000000" izy = "0.000000" izz = "0.000010" />
+        </inertial>
+    </link>
+    <joint name="iiwa7_gripper_finger1_finger_joint" type="fixed">
+          <parent link="iiwa7_gripper_finger1_knuckle_link"/>
+          <child link="iiwa7_gripper_finger1_finger_link"/>
+          <origin xyz="-0.00408552455 -0.03148604435 0.0" rpy="0 0 0" />
+      </joint>
+
+      <joint name="iiwa7_gripper_finger2_finger_joint" type="fixed">
+          <parent link="iiwa7_gripper_finger2_knuckle_link"/>
+          <child link="iiwa7_gripper_finger2_finger_link"/>
+          <origin xyz="-0.00408552455 -0.03148604435 0.0" rpy="0 0 0" />
+      </joint>
+
+      <link name="iiwa7_gripper_finger1_finger_link">
+          <visual>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_finger_link.dae"/>
+              </geometry>
+          </visual>
+          <collision>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_finger_link.stl"/>
+              </geometry>
+          </collision>
+          <inertial>
+              <mass value="0.027309" />
+              <origin xyz="0.0 0.0 0.0" />
+              <inertia ixx = "0.000003" ixy = "-0.000002" ixz = "0.000000"
+                        iyx = "-0.000002" iyy = "0.000021" iyz = "0.000000"
+                        izx = "0.000000" izy = "0.000000" izz = "0.000020" />
+          </inertial>
+      </link>
+      <link name="iiwa7_gripper_finger2_finger_link">
+          <visual>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_finger_link.dae"/>
+              </geometry>
+          </visual>
+          <collision>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_finger_link.stl"/>
+              </geometry>
+          </collision>
+          <inertial>
+              <mass value="0.027309" />
+              <origin xyz="0.0 0.0 0.0" />
+              <inertia ixx = "0.000003" ixy = "-0.000002" ixz = "0.000000"
+                        iyx = "-0.000002" iyy = "0.000021" iyz = "0.000000"
+                        izx = "0.000000" izy = "0.000000" izz = "0.000020" />
+          </inertial>
+      </link>
+      <joint name="iiwa7_gripper_finger1_inner_knuckle_joint" type="revolute">
+          <parent link="iiwa7_gripper_base_link"/>
+          <child link="iiwa7_gripper_finger1_inner_knuckle_link"/>
+          <axis xyz="0 0 1"/>
+          <origin xyz="0.06142 0.0127 0" rpy="${pi} 0.0 0.0" />
+          <limit lower="0.0" upper="1.0" velocity="100.0" effort="0.1"/>
+      </joint>
+
+      <joint name="iiwa7_gripper_finger2_inner_knuckle_joint" type="revolute">
+          <parent link="iiwa7_gripper_base_link"/>
+          <child link="iiwa7_gripper_finger2_inner_knuckle_link"/>
+          <axis xyz="0 0 1"/>
+          <origin xyz="0.06142 -0.0127 0" rpy="0 0 0"/>
+          <limit lower="0.0" upper="1.0" velocity="100.0" effort="0.1"/>
+          <mimic joint="iiwa7_gripper_finger1_inner_knuckle_joint" offset="0"/>
+      </joint>
+
+      <link name="iiwa7_gripper_finger1_inner_knuckle_link">
+          <visual>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_inner_knuckle_link.dae"/>
+              </geometry>
+          </visual>
+          <collision>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_inner_knuckle_link.stl"/>
+              </geometry>
+          </collision>
+          <inertial>
+              <mass value="0.029951" />
+              <origin xyz="0.0 0.0 0.0" />
+              <inertia ixx = "0.000039" ixy = "0.000000" ixz = "0.000000"
+                        iyx = "0.000000" iyy = "0.000005" iyz = "0.000000"
+                        izx = "0.000000" izy = "0.000000" izz = "0.000035" />
+          </inertial>
+      </link>
+      <link name="iiwa7_gripper_finger2_inner_knuckle_link">
+          <visual>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_inner_knuckle_link.dae"/>
+              </geometry>
+          </visual>
+          <collision>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_inner_knuckle_link.stl"/>
+              </geometry>
+          </collision>
+          <inertial>
+              <mass value="0.029951" />
+              <origin xyz="0.0 0.0 0.0" />
+              <inertia ixx = "0.000039" ixy = "0.000000" ixz = "0.000000"
+                        iyx = "0.000000" iyy = "0.000005" iyz = "0.000000"
+                        izx = "0.000000" izy = "0.000000" izz = "0.000035" />
+          </inertial>
+      </link>
+      <joint name="iiwa7_gripper_finger1_finger_tip_joint" type="revolute">
+          <parent link="iiwa7_gripper_finger1_inner_knuckle_link"/>
+          <child link="iiwa7_gripper_finger1_finger_tip_link"/>
+          <axis xyz="0 0 1"/>
+          <origin xyz="0.04303959807 -0.03759940821 0.0" rpy="0.0 0.0 0.0"/>
+          <limit lower="-1.0" upper="0.0" velocity="100.0" effort="0.1"/>
+          <mimic joint="iiwa7_gripper_finger1_inner_knuckle_joint" multiplier="-1" offset="0"/>
+      </joint>
+
+      <joint name="iiwa7_gripper_finger2_finger_tip_joint" type="revolute">
+          <parent link="iiwa7_gripper_finger2_inner_knuckle_link"/>
+          <child link="iiwa7_gripper_finger2_finger_tip_link"/>
+          <axis xyz="0 0 1"/>
+          <origin rpy="0.0 0.0 0.0" xyz="0.04303959807 -0.03759940821  0.0"/>
+          <limit lower="-1.0" upper="0.0" velocity="100.0" effort="0.1"/>
+          <mimic joint="iiwa7_gripper_finger1_inner_knuckle_joint" multiplier="-1" offset="0"/>
+      </joint>
+
+      <link name="iiwa7_gripper_finger1_finger_tip_link">
+          <visual>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_finger_tip_link.dae"/>
+              </geometry>
+          </visual>
+          <collision>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_finger_tip_link.stl"/>
+              </geometry>
+          </collision>
+          <inertial>
+              <mass value="0.019555" />
+              <origin xyz="0.0 0.0 0.0" />
+              <inertia ixx = "0.000002" ixy = "0.000000" ixz = "0.000000"
+                        iyx = "0.000000" iyy = "0.000005" iyz = "0.000000"
+                        izx = "0.000000" izy = "0.000000" izz = "0.000006" />
+          </inertial>
+      </link>
+      <link name="iiwa7_gripper_finger2_finger_tip_link">
+          <visual>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/visual/robotiq_85_finger_tip_link.dae"/>
+              </geometry>
+          </visual>
+          <collision>
+              <geometry>
+                  <mesh filename="robotiq_85_gripper/meshes/collision/robotiq_85_finger_tip_link.stl"/>
+              </geometry>
+          </collision>
+          <inertial>
+              <mass value="0.019555" />
+              <origin xyz="0.0 0.0 0.0" />
+              <inertia ixx = "0.000002" ixy = "0.000000" ixz = "0.000000"
+                        iyx = "0.000000" iyy = "0.000005" iyz = "0.000000"
+                        izx = "0.000000" izy = "0.000000" izz = "0.000006" />
+          </inertial>
+      </link>
+
 </robot>
 
