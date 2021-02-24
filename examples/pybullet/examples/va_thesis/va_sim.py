@@ -11,15 +11,9 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.loadURDF("plane.urdf", [0, 0, -0.3], useFixedBase=True)
 kukaId = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
 p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
-kukaEndEffectorIndex = 6
-numJoints = p.getNumJoints(kukaId)
+kukaEndEffectorIndex = 7
+totalNumJoints = p.getNumJoints(kukaId)
 
-while True:
-  a = 1
-
-'''
-if (numJoints != 7):
-  exit()
 
 #lower limits for null space
 ll = [-.967, -2, -2.96, 0.19, -2.96, -2.09, -3.05]
@@ -30,12 +24,14 @@ jr = [5.8, 4, 5.8, 4, 5.8, 4, 6]
 #restposes for null space
 rp = [0, 0, 0, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
 #joint damping coefficents
-jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+jd = [0.01] * totalNumJoints
+# number of joints for just the arm
+numJoints = 7
 
 for i in range(numJoints):
   p.resetJointState(kukaId, i, rp[i])
 
-p.setGravity(0, 0, -10)
+p.setGravity(0, 0, -9.81)
 t = 0.
 prevPose = [0, 0, 0]
 prevPose1 = [0, 0, 0]
@@ -43,7 +39,7 @@ hasPrevPose = 0
 useNullSpace = 0
 
 count = 0
-useOrientation = 1
+useOrientation = 0
 useSimulation = 1
 useRealTimeSimulation = 1
 p.setRealTimeSimulation(useRealTimeSimulation)
@@ -93,7 +89,7 @@ while 1:
                                                   jointDamping=jd)
       else:
         jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos)
-
+    
     if (useSimulation):
       for i in range(numJoints):
         p.setJointMotorControl2(bodyIndex=kukaId,
@@ -108,7 +104,7 @@ while 1:
       #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
       for i in range(numJoints):
         p.resetJointState(kukaId, i, jointPoses[i])
-
+  
   ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
   if (hasPrevPose):
     p.addUserDebugLine(prevPose, pos, [0, 0, 0.3], 1, trailDuration)
@@ -116,4 +112,3 @@ while 1:
   prevPose = pos
   prevPose1 = ls[4]
   hasPrevPose = 1
-  '''
