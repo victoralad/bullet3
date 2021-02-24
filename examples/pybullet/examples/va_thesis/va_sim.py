@@ -41,7 +41,7 @@ useNullSpace = 0
 count = 0
 useOrientation = 0
 useSimulation = 1
-useRealTimeSimulation = 1
+useRealTimeSimulation = 0
 p.setRealTimeSimulation(useRealTimeSimulation)
 #trailDuration is duration (in seconds) after debug lines will be removed automatically
 #use 0 for no-removal
@@ -112,3 +112,49 @@ while 1:
   prevPose = pos
   prevPose1 = ls[4]
   hasPrevPose = 1
+
+  keys = p.getKeyboardEvents()
+  close_cmd = ord('c')
+  open_cmd = ord('o')
+  if close_cmd in keys:
+    print("Close gripper")
+  elif open_cmd in keys:
+    print("Open gripper")
+
+
+  # def gripper(self, cmd, mode=pb.POSITION_CONTROL):
+  #       '''
+  #       Gripper commands need to be mirrored to simulate behavior of the actual
+  #       UR5. Converts one command input to 6 joint positions, used for the
+  #       robotiq gripper. This is a rough simulation of the way the robotiq
+  #       gripper works in practice, in the absence of a plugin like the one we
+  #       use in Gazebo.
+
+  #       Parameters:
+  #       -----------
+  #       cmd: 1x1 array of floating point position commands in [-0.8, 0]
+  #       mode: PyBullet control mode
+  #       '''
+
+  #       cmd = cmd[0]
+  #       # This is actually only a 1-DOF gripper
+  #       if cmd < -0.1:
+  #           cmd_array = [-cmd + 0.1, -cmd + 0.1, cmd + 0.15,
+  #                   -cmd + 0.1, -cmd + 0.1, cmd + 0.15]
+  #       else:
+  #           cmd_array = [-cmd , -cmd, cmd, -cmd, -cmd, cmd]
+  #       forces = [25., 25., 25., 25., 25., 25.]
+  #       gains = [0.1, 0.1, 0.15, 0.1, 0.1, 0.15]
+  #       #if abs(cmd) < -0.01:
+  #       #    mode = pb.TORQUE_CONTROL
+  #       #    forces = [0.] * len(cmd_array)
+  #       #else:
+
+  #       #gripper_indices = [left_knuckle, left_inner_knuckle,
+  #       #               left_fingertip, right_knuckle, right_inner_knuckle,
+  #       #               right_fingertip]
+
+  #       pb.setJointMotorControlArray(self.handle, self.gripper_indices, mode,
+  #                                    cmd_array,
+  #                                    forces=forces,
+  #                                    positionGains=gains)
