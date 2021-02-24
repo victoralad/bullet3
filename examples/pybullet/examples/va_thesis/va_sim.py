@@ -2,6 +2,8 @@ import pybullet as p
 import time
 import math
 from datetime import datetime
+from attrdict import AttrDict
+from collections import namedtuple
 
 #clid = p.connect(p.SHARED_MEMORY)
 import pybullet_data
@@ -13,6 +15,21 @@ kukaId = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
 p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
 kukaEndEffectorIndex = 7
 totalNumJoints = p.getNumJoints(kukaId)
+
+joints = AttrDict()
+jointInfo = namedtuple("jointInfo", ["id","name","lowerLimit","upperLimit","maxForce","maxVelocity"])
+
+# get jointInfo and index of dummy_center_indicator_link
+for i in range(totalNumJoints):
+    info = p.getJointInfo(kukaId, i)
+    jointID = info[0]
+    jointName = info[1].decode("utf-8")
+    jointLowerLimit = info[8]
+    jointUpperLimit = info[9]
+    jointMaxForce = info[10]
+    jointMaxVelocity = info[11]
+    singleInfo = jointInfo(jointID, jointName, jointLowerLimit, jointUpperLimit, jointMaxForce, jointMaxVelocity)
+    joints[singleInfo.name] = singleInfo
 
 
 #lower limits for null space
@@ -118,43 +135,31 @@ while 1:
   open_cmd = ord('o')
   if close_cmd in keys:
     print("Close gripper")
+    gripper(0.5)
   elif open_cmd in keys:
     print("Open gripper")
+    gripper(0.0)
 
 
-  # def gripper(self, cmd, mode=pb.POSITION_CONTROL):
-  #       '''
-  #       Gripper commands need to be mirrored to simulate behavior of the actual
-  #       UR5. Converts one command input to 6 joint positions, used for the
-  #       robotiq gripper. This is a rough simulation of the way the robotiq
-  #       gripper works in practice, in the absence of a plugin like the one we
-  #       use in Gazebo.
+  def gripper(cmd, mode=p.POSITION_CONTROL):
+        '''
+        Gripper commands need to be mirrored to simulate behavior of the actual
+        UR5. Converts one command input to 6 joint positions, used for the
+        robotiq gripper. This is a rough simulation of the way the robotiq
+        gripper works in practice, in the absence of a plugin like the one we
+        use in Gazebo.
 
-  #       Parameters:
-  #       -----------
-  #       cmd: 1x1 array of floating point position commands in [-0.8, 0]
-  #       mode: PyBullet control mode
-  #       '''
+        Parameters:
+        -----------
+        cmd: 1x1 array of floating point position commands in [-0.8, 0]
+        mode: PyBullet control mode
+        '''
+        
+        gripper_ctrl_joints = ["robotiq_85_left_inner_knuckle_joint", "robotiq_85_right_inner_knuckle_joint"]
+        gripper_ctrl_id = [joints[gripper_ctrl_joints[0]].id, joints[gripper_ctrl_joints[1]].id]
+        cmd_array = [cmd, cmd]
+        gripper_forces = [joints[gripper_ctrl_joints[0]].maxForce, joints[gripper_ctrl_joints[0]].maxForce]
+        gripper_velocities = [joints[gripper_ctrl_joints[0]].maxVelocity, joints[gripper_ctrl_joints[1]].maxVelocity]
 
-  #       cmd = cmd[0]
-  #       # This is actually only a 1-DOF gripper
-  #       if cmd < -0.1:
-  #           cmd_array = [-cmd + 0.1, -cmd + 0.1, cmd + 0.15,
-  #                   -cmd + 0.1, -cmd + 0.1, cmd + 0.15]
-  #       else:
-  #           cmd_array = [-cmd , -cmd, cmd, -cmd, -cmd, cmd]
-  #       forces = [25., 25., 25., 25., 25., 25.]
-  #       gains = [0.1, 0.1, 0.15, 0.1, 0.1, 0.15]
-  #       #if abs(cmd) < -0.01:
-  #       #    mode = pb.TORQUE_CONTROL
-  #       #    forces = [0.] * len(cmd_array)
-  #       #else:
-
-  #       #gripper_indices = [left_knuckle, left_inner_knuckle,
-  #       #               left_fingertip, right_knuckle, right_inner_knuckle,
-  #       #               right_fingertip]
-
-  #       pb.setJointMotorControlArray(self.handle, self.gripper_indices, mode,
-  #                                    cmd_array,
-  #                                    forces=forces,
-  #                                    positionGains=gains)
+        p.setJointMotorControlArray(kukaId, gripper_ctrl_id, mode, targetPositions=cmd_array, positionGains=[0.1, 0.1],
+                            forces=gripper_forces, targetVelocities=gripper_velocities)
