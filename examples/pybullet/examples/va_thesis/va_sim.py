@@ -135,13 +135,13 @@ while 1:
   open_cmd = ord('o')
   if close_cmd in keys:
     print("Close gripper")
-    gripper(0.5)
+    gripper(0.0)
   elif open_cmd in keys:
     print("Open gripper")
-    gripper(0.0)
+    gripper(0.085)
 
 
-  def gripper(cmd, mode=p.POSITION_CONTROL):
+  def gripper(gripper_opening_length, mode=p.POSITION_CONTROL):
         '''
         Gripper commands need to be mirrored to simulate behavior of the actual
         UR5. Converts one command input to 6 joint positions, used for the
@@ -154,12 +154,27 @@ while 1:
         cmd: 1x1 array of floating point position commands in [-0.8, 0]
         mode: PyBullet control mode
         '''
-        
-        gripper_ctrl_joints = ["robotiq_85_left_inner_knuckle_joint", "robotiq_85_right_inner_knuckle_joint"]
-        gripper_ctrl_id = [joints[gripper_ctrl_joints[0]].id, joints[gripper_ctrl_joints[1]].id]
-        cmd_array = [cmd, cmd]
-        gripper_forces = [joints[gripper_ctrl_joints[0]].maxForce, joints[gripper_ctrl_joints[0]].maxForce]
-        gripper_velocities = [joints[gripper_ctrl_joints[0]].maxVelocity, joints[gripper_ctrl_joints[1]].maxVelocity]
 
-        p.setJointMotorControlArray(kukaId, gripper_ctrl_id, mode, targetPositions=cmd_array, positionGains=[0.1, 0.1],
-                            forces=gripper_forces, targetVelocities=gripper_velocities)
+        gripper_main_control_joint_name = "robotiq_85_left_knuckle_joint"
+        mimic_joint_name = ["robotiq_85_right_knuckle_joint",
+                            "robotiq_85_left_inner_knuckle_joint",
+                            "robotiq_85_right_inner_knuckle_joint",
+                            "robotiq_85_left_finger_tip_joint",
+                            "robotiq_85_right_finger_tip_joint"]
+        mimic_multiplier = [1, 1, 1, -1, -1]
+
+        # gripper control
+        gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
+
+        p.setJointMotorControl2(kukaId,
+                                joints[gripper_main_control_joint_name].id,
+                                p.POSITION_CONTROL,
+                                targetPosition=gripper_opening_angle,
+                                force=joints[gripper_main_control_joint_name].maxForce,
+                                maxVelocity=joints[gripper_main_control_joint_name].maxVelocity)
+        for i in range(len(mimic_joint_name)):
+            joint = joints[mimic_joint_name[i]]
+            p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
+                                    targetPosition=gripper_opening_angle * mimic_multiplier[i],
+                                    force=joint.maxForce,
+                                    maxVelocity=joint.maxVelocity)
