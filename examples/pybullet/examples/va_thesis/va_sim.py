@@ -13,8 +13,13 @@ kukaId = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
 p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
 kukaEndEffectorIndex = 6
 numJoints = p.getNumJoints(kukaId)
-# if (numJoints != 7):
-#   exit()
+
+while True:
+  a = 1
+
+'''
+if (numJoints != 7):
+  exit()
 
 #lower limits for null space
 ll = [-.967, -2, -2.96, 0.19, -2.96, -2.09, -3.05]
@@ -111,3 +116,4 @@ while 1:
   prevPose = pos
   prevPose1 = ls[4]
   hasPrevPose = 1
+  '''

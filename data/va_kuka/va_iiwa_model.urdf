@@ -289,7 +289,7 @@
     </collision>
   </link>
   <!-- Joint to connect link 7 to ft_sensor mount -->
-  <joint name="iiwa7_joint_ft_mount" type="fixed">
+  <joint name="iiwa7_joint_ft300_mounting_plate" type="fixed">
     <parent link="lbr_iiwa_link_7"/>
     <child link="iiwa7_link_ft300_mounting_plate"/>
     <origin xyz="0 0 0.0415" rpy="0 0 0"/>
@@ -324,8 +324,8 @@
   </link>
 
       <!-- Connect force sensor with mounting/coupling plate -->
-  <joint name="iiwa7_joint_ft300_mounting_plate" type="fixed">
-      <origin xyz="0 0 0.0415" rpy="0 ${pi} 0"/> 
+  <joint name="iiwa7_joint_ft300_sensor" type="fixed">
+      <origin xyz="0 0 0" rpy="0 ${pi} 0"/> 
       <parent link="iiwa7_link_ft300_mounting_plate" />
       <child link="iiwa7_link_ft300_sensor" />
   </joint>
