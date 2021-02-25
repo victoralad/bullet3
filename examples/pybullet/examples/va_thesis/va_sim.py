@@ -50,10 +50,9 @@ for i in range(numJoints):
 
 p.setGravity(0, 0, -9.81)
 t = 0.
-prevPose = [0, 0, 0]
-prevPose1 = [0, 0, 0]
-hasPrevPose = 0
-useNullSpace = 0
+# prevPose = [0, 0, 0]
+# prevPose1 = [0, 0, 0]
+# hasPrevPose = 0
 
 count = 0
 useOrientation = 0
@@ -62,7 +61,7 @@ useRealTimeSimulation = 0
 p.setRealTimeSimulation(useRealTimeSimulation)
 #trailDuration is duration (in seconds) after debug lines will be removed automatically
 #use 0 for no-removal
-trailDuration = 15
+# trailDuration = 15
 
 logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
 logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
@@ -85,50 +84,37 @@ while 1:
     #end effector points down, not up (in case useOrientation==1)
     orn = p.getQuaternionFromEuler([0, -math.pi, 0])
 
-    if (useNullSpace == 1):
-      if (useOrientation == 1):
-        jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos, orn, ll, ul,
-                                                  jr, rp)
-      else:
-        jointPoses = p.calculateInverseKinematics(kukaId,
-                                                  kukaEndEffectorIndex,
-                                                  pos,
-                                                  lowerLimits=ll,
-                                                  upperLimits=ul,
-                                                  jointRanges=jr,
-                                                  restPoses=rp)
-    else:
-      if (useOrientation == 1):
-        jointPoses = p.calculateInverseKinematics(kukaId,
-                                                  kukaEndEffectorIndex,
-                                                  pos,
-                                                  orn,
-                                                  jointDamping=jd)
-      else:
-        jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos)
-    
-    if (useSimulation):
-      for i in range(numJoints):
-        p.setJointMotorControl2(bodyIndex=kukaId,
-                                jointIndex=i,
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=jointPoses[i],
-                                targetVelocity=0,
-                                force=500,
-                                positionGain=0.03,
-                                velocityGain=1)
-    else:
-      #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
-      for i in range(numJoints):
-        p.resetJointState(kukaId, i, jointPoses[i])
+  if (useOrientation == 1):
+    jointPoses = p.calculateInverseKinematics(kukaId,
+                                              kukaEndEffectorIndex,
+                                              pos,
+                                              orn,
+                                              jointDamping=jd)
+  else:
+    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos)
+  
+  if (useSimulation):
+    for i in range(numJoints):
+      p.setJointMotorControl2(bodyIndex=kukaId,
+                              jointIndex=i,
+                              controlMode=p.POSITION_CONTROL,
+                              targetPosition=jointPoses[i],
+                              targetVelocity=0,
+                              force=500,
+                              positionGain=0.03,
+                              velocityGain=1)
+  else:
+    #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
+    for i in range(numJoints):
+      p.resetJointState(kukaId, i, jointPoses[i])
   
   ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
-  if (hasPrevPose):
-    p.addUserDebugLine(prevPose, pos, [0, 0, 0.3], 1, trailDuration)
-    p.addUserDebugLine(prevPose1, ls[4], [1, 0, 0], 1, trailDuration)
-  prevPose = pos
-  prevPose1 = ls[4]
-  hasPrevPose = 1
+  # if (hasPrevPose):
+  #   p.addUserDebugLine(prevPose, pos, [0, 0, 0.3], 1, trailDuration)
+  #   p.addUserDebugLine(prevPose1, ls[4], [1, 0, 0], 1, trailDuration)
+  # prevPose = pos
+  # prevPose1 = ls[4]
+  # hasPrevPose = 1
 
   keys = p.getKeyboardEvents()
   close_cmd = ord('c')
