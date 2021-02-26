@@ -67,17 +67,15 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    pos = [0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos = [0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
     #end effector points down, not up (when orientation is used)
-    orn_euler = [0, -math.pi, 0]
-    orn = p.getQuaternionFromEuler(orn_euler)
-
-    # jacobian = p.calculateJacobian(self.kukaId, self.kukaEndEffectorIndex, )
+    desired_ee_orn_euler = [0, -math.pi, 0]
+    desired_ee_orn = p.getQuaternionFromEuler(desired_ee_orn_euler)
 
     jointPoses = p.calculateInverseKinematics(self.kukaId,
                                               self.kukaEndEffectorIndex,
-                                              pos,
-                                              orn,
+                                              desired_ee_pos,
+                                              desired_ee_orn,
                                               jointDamping=self.jd)
     
     if (self.useSimulation):
@@ -88,7 +86,7 @@ class ObjDyn:
                                 targetPosition=jointPoses[i],
                                 targetVelocity=0,
                                 force=500,
-                                positionGain=0.03,
+                                positionGain=0.3,
                                 velocityGain=1)
     else:
       #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
@@ -101,9 +99,9 @@ class ObjDyn:
       #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
       #use 0 for no-removal
       trailDuration = 15
-      p.addUserDebugLine(self.prevPose, pos, [0, 0, 0.3], 1, trailDuration)
+      p.addUserDebugLine(self.prevPose, desired_ee_pos, [0, 0, 0.3], 1, trailDuration)
       p.addUserDebugLine(self.prevPose1, ls[4], [1, 0, 0], 1, trailDuration)
-    self.prevPose = pos
+    self.prevPose = desired_ee_pos
     self.prevPose1 = ls[4]
     self.hasPrevPose = 1
 
