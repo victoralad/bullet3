@@ -29,17 +29,21 @@ class ObjDyn:
     # num of degrees-of-freedom. nDof = totalNumJoints - numFixedJoints
     self.nDof = p.computeDofCount(self.kukaId)
 
+    initJointPos = [0, 0, 0, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+    for i in range(self.numJoints):
+      p.resetJointState(self.kukaId, i, initJointPos[i])
+
     self.t = 0.
     self.useSimulation = 1
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
 
-    self.Kp = 20 * np.array([5, 5, 5, 2, 2, 2])
-    self.Kv = 1 * np.array([0.5, 0.5, 0.5, 0.2, 0.2, 0.2])
+    self.Kp = 0.5 * np.array([5, 5, 5, 2, 2, 2])
+    self.Kv = 0.2 * np.array([0.5, 0.5, 0.5, 0.2, 0.2, 0.2])
 
-    # self.prevPose = [0, 0, 0]
-    # self.prevPose1 = [0, 0, 0]
-    # self.hasPrevPose = 0
+    self.prevPose = [0, 0, 0]
+    self.prevPose1 = [0, 0, 0]
+    self.hasPrevPose = 0
 
     logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
     logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
@@ -73,9 +77,9 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    desired_ee_pos = [0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos = [-0.5, 0.0, 0.2] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
     #end effector points down, not up (when orientation is used)
-    desired_orn_euler = [0, -math.pi, 0]
+    desired_orn_euler = [0, -math.pi / 2, 0]
 
     # State of end effector.
     ee_state = p.getLinkState(self.kukaId, self.kukaEndEffectorIndex, computeLinkVelocity=1, computeForwardKinematics=1)
@@ -101,16 +105,19 @@ class ObjDyn:
     ee_pose_error = desired_ee_pose - ee_pose
     ee_vel_error = desired_ee_vel - ee_vel
 
-    print("-----------------------")
-    print(ee_pose_error)
-
     desired_ee_wrench = self.Kp * ee_pose_error + self.Kv * ee_vel_error
 
     nonlinear_forces = p.calculateInverseDynamics(self.kukaId, joints_pos, joints_vel, zero_vec)
     desired_joint_torques = jac.T.dot(desired_ee_wrench) + np.array(nonlinear_forces)
 
+    print("-----------------------")
+    # print(ee_pose_error)
+    for i in range(6):
+      print(ee_pose_error[i])
+
     if (self.useSimulation):
       for i in range(self.numJoints):
+        p.setJointMotorControl2(self.kukaId, i, p.VELOCITY_CONTROL, force=0.05)
         p.setJointMotorControl2(bodyIndex=self.kukaId,
                                 jointIndex=i,
                                 controlMode=p.TORQUE_CONTROL,
@@ -121,15 +128,15 @@ class ObjDyn:
         p.resetJointState(self.kukaId, i, jointPoses[i])
     
 
-    # if (self.hasPrevPose):
-    #   #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
-    #   #use 0 for no-removal
-    #   trailDuration = 15
-    #   p.addUserDebugLine(self.prevPose, desired_ee_pos, [0, 0, 0.3], 1, trailDuration)
-    #   p.addUserDebugLine(self.prevPose1, ee_state[4], [1, 0, 0], 1, trailDuration)
-    # self.prevPose = desired_ee_pos
-    # self.prevPose1 = ee_state[4]
-    # self.hasPrevPose = 1
+    if (self.hasPrevPose):
+      #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
+      #use 0 for no-removal
+      trailDuration = 15
+      p.addUserDebugLine(self.prevPose, desired_ee_pos, [0, 0, 0.3], 1, trailDuration)
+      p.addUserDebugLine(self.prevPose1, ee_state[4], [1, 0, 0], 1, trailDuration)
+    self.prevPose = desired_ee_pos
+    self.prevPose1 = ee_state[4]
+    self.hasPrevPose = 1
 
     keys = p.getKeyboardEvents()
     close_cmd = ord('c')
