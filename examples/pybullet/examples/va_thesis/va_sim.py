@@ -3,6 +3,7 @@ import pybullet_data
 
 import time
 import math
+import numpy as np
 
 from datetime import datetime
 from attrdict import AttrDict
@@ -32,6 +33,9 @@ class ObjDyn:
     self.useSimulation = 1
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
+
+    self.Kp = 20 * np.array([5, 5, 5, 2, 2, 2])
+    self.Kv = 1 * np.array([0.5, 0.5, 0.5, 0.2, 0.2, 0.2])
 
     # self.prevPose = [0, 0, 0]
     # self.prevPose1 = [0, 0, 0]
@@ -69,7 +73,7 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    desired_pos = [0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos = [0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
     #end effector points down, not up (when orientation is used)
     desired_orn_euler = [0, -math.pi, 0]
 
@@ -87,32 +91,30 @@ class ObjDyn:
     
     zero_vec = [0.0] * len(joints_pos)
     jac_t, jac_r = p.calculateJacobian(self.kukaId, self.kukaEndEffectorIndex, frame_pos, joints_pos, zero_vec, zero_vec)
-    print("----------")
-    print(self.totalNumJoints)
-    print("------------")
-    print()
-    quit()
     
-    jac = [jac_t, jac_r]
-    ee_pose = [frame_pos, frame_rot]
-    desired_ee_pose = [desired_pos, desired_orn_euler]
-    ee_vel = [link_vt, link_vr]
-    desired_ee_vel = [0.0] * len(ee_vel)
+    jac = np.vstack((np.array(jac_t), np.array(jac_r)))
+    ee_pose = np.concatenate((np.array(frame_pos), np.array(p.getEulerFromQuaternion(frame_rot))))
+    desired_ee_pose = np.concatenate((np.array(desired_ee_pos), np.array(desired_orn_euler)))
+    ee_vel = np.concatenate((np.array(link_vt), np.array(link_vr)))
+    desired_ee_vel = np.zeros(len(ee_vel))
 
     ee_pose_error = desired_ee_pose - ee_pose
     ee_vel_error = desired_ee_vel - ee_vel
 
+    print("-----------------------")
+    print(ee_pose_error)
+
     desired_ee_wrench = self.Kp * ee_pose_error + self.Kv * ee_vel_error
 
     nonlinear_forces = p.calculateInverseDynamics(self.kukaId, joints_pos, joints_vel, zero_vec)
-    desired_joint_torques = jac.transpose() * desired_ee_wrench + nonlinear_forces
+    desired_joint_torques = jac.T.dot(desired_ee_wrench) + np.array(nonlinear_forces)
 
     if (self.useSimulation):
       for i in range(self.numJoints):
-        p.setJointMotorControlArray(bodyIndex=self.kukaId,
-                                jointIndices=range(self.numJoints),
+        p.setJointMotorControl2(bodyIndex=self.kukaId,
+                                jointIndex=i,
                                 controlMode=p.TORQUE_CONTROL,
-                                force=desired_joint_torques)
+                                force=desired_joint_torques[i])
     else:
       #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
       for i in range(self.numJoints):
@@ -123,10 +125,10 @@ class ObjDyn:
     #   #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
     #   #use 0 for no-removal
     #   trailDuration = 15
-    #   p.addUserDebugLine(self.prevPose, pos, [0, 0, 0.3], 1, trailDuration)
-    #   p.addUserDebugLine(self.prevPose1, ls[4], [1, 0, 0], 1, trailDuration)
-    # self.prevPose = pos
-    # self.prevPose1 = ls[4]
+    #   p.addUserDebugLine(self.prevPose, desired_ee_pos, [0, 0, 0.3], 1, trailDuration)
+    #   p.addUserDebugLine(self.prevPose1, ee_state[4], [1, 0, 0], 1, trailDuration)
+    # self.prevPose = desired_ee_pos
+    # self.prevPose1 = ee_state[4]
     # self.hasPrevPose = 1
 
     keys = p.getKeyboardEvents()
@@ -145,16 +147,6 @@ class ObjDyn:
     joint_velocities = [state[1] for state in joint_states]
     joint_torques = [state[3] for state in joint_states]
     return joint_positions, joint_velocities, joint_torques
-  
-  def multiplyJacobian(self, kukaId, jacobian, vector):
-    result = [0.0, 0.0, 0.0]
-    i = 0
-    for c in range(len(vector)):
-      if p.getJointInfo(kukaId, c)[3] > -1:
-        for r in range(3):
-          result[r] += jacobian[r][i] * vector[c]
-        i += 1
-    return result
 
   def gripper(self, gripper_opening_length, mode=p.POSITION_CONTROL):
         '''
