@@ -25,15 +25,17 @@ class ObjDyn:
     self.jd = [0.01] * self.totalNumJoints
     # number of joints for just the arm
     self.numJoints = 7
+    # num of degrees-of-freedom. nDof = totalNumJoints - numFixedJoints
+    self.nDof = p.computeDofCount(self.kukaId)
 
     self.t = 0.
     self.useSimulation = 1
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
 
-    self.prevPose = [0, 0, 0]
-    self.prevPose1 = [0, 0, 0]
-    self.hasPrevPose = 0
+    # self.prevPose = [0, 0, 0]
+    # self.prevPose1 = [0, 0, 0]
+    # self.hasPrevPose = 0
 
     logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
     logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
@@ -85,6 +87,11 @@ class ObjDyn:
     
     zero_vec = [0.0] * len(joints_pos)
     jac_t, jac_r = p.calculateJacobian(self.kukaId, self.kukaEndEffectorIndex, frame_pos, joints_pos, zero_vec, zero_vec)
+    print("----------")
+    print(self.totalNumJoints)
+    print("------------")
+    print()
+    quit()
     
     jac = [jac_t, jac_r]
     ee_pose = [frame_pos, frame_rot]
@@ -133,7 +140,7 @@ class ObjDyn:
       self.gripper(0.085)
 
   def getJointStates(self, kukaId):
-    joint_states = p.getJointStates(kukaId, range(self.numJoints))
+    joint_states = p.getJointStates(kukaId, range(self.nDof))
     joint_positions = [state[0] for state in joint_states]
     joint_velocities = [state[1] for state in joint_states]
     joint_torques = [state[3] for state in joint_states]
