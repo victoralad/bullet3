@@ -35,6 +35,12 @@ class ObjDyn:
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
 
+    initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+
+    for i in range(self.numJoints):
+      p.resetJointState(self.kukaId_A, i, initPose[i])
+      p.resetJointState(self.kukaId_B, i, initPose[i])
+
     self.prevPose_A = [0, 0, 0]
     self.prevPose_B = [0, 0, 0]
     self.prevPose1_A = [0, 0, 0]
@@ -74,8 +80,8 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    desired_ee_pos_A = [-0.25, 0.7, 0.52] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
-    desired_ee_pos_B = [0.25, 0.7, 0.52]
+    desired_ee_pos_A = [-0.25, 0.7, 0.02] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos_B = [0.25, 0.7, 0.02]
     #end effector points down, not up (when orientation is used)
     desired_ee_orn_euler_A = [-3.141090814084376, 0.0015622492927442, -1.57108642] #[0, -math.pi, 0]
     desired_ee_orn_euler_B = [3.121090814084376, 0.0015622492927442, 1.57108642]
@@ -95,6 +101,7 @@ class ObjDyn:
                                           jointDamping=self.jd)
     
     if (self.useSimulation):
+      a = 2
       for i in range(self.numJoints):
         p.setJointMotorControl2(bodyIndex=self.kukaId_A,
                                 jointIndex=i,
@@ -102,8 +109,8 @@ class ObjDyn:
                                 targetPosition=jointPoses_A[i],
                                 targetVelocity=0,
                                 force=500,
-                                positionGain=0.3,
-                                velocityGain=1)
+                                positionGain=0.1,
+                                velocityGain=0.5)
 
         p.setJointMotorControl2(bodyIndex=self.kukaId_B,
                                 jointIndex=i,
@@ -111,8 +118,8 @@ class ObjDyn:
                                 targetPosition=jointPoses_B[i],
                                 targetVelocity=0,
                                 force=500,
-                                positionGain=0.3,
-                                velocityGain=1)
+                                positionGain=0.1,
+                                velocityGain=0.5)
 
     else:
       #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
