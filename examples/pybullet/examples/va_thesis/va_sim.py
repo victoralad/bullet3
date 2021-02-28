@@ -15,7 +15,7 @@ class ObjDyn:
   def __init__(self):
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
-    p.loadURDF("plane.urdf", [0, 0, -0.3], useFixedBase=True)
+    p.loadURDF("plane.urdf", [0, 0, 0.0], useFixedBase=True)
     self.kukaId_A = p.loadURDF("va_kuka/va_iiwa_model.urdf", [-0.3, 0, 0], useFixedBase=True)
     self.kukaId_B = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0.3, 0, 0], useFixedBase=True)
     self.grasped_object = p.loadURDF("va_kuka/grasp_object.urdf", [0, 0.7, 0.02], useFixedBase=False)
@@ -46,6 +46,9 @@ class ObjDyn:
     self.prevPose1_A = [0, 0, 0]
     self.prevPose1_B = [0, 0, 0]
     self.hasPrevPose = 0
+
+    self.delta_z_A = 0.0
+    self.delta_z_B = 0.0
 
     logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
     logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
@@ -80,11 +83,11 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    desired_ee_pos_A = [-0.25, 0.7, 0.02] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
-    desired_ee_pos_B = [0.25, 0.7, 0.02]
+    desired_ee_pos_A = [-0.25, 0.7, 0.2 + self.delta_z_A] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos_B = [0.25, 0.7, 0.2 + self.delta_z_B]
     #end effector points down, not up (when orientation is used)
-    desired_ee_orn_euler_A = [-3.141090814084376, 0.0015622492927442, -1.57108642] #[0, -math.pi, 0]
-    desired_ee_orn_euler_B = [3.121090814084376, 0.0015622492927442, 1.57108642]
+    desired_ee_orn_euler_A = [-3.141090814084376, 0.0015622492927442, 0] #[0, -math.pi, 0]
+    desired_ee_orn_euler_B = [3.121090814084376, 0.0015622492927442, 0]
     desired_ee_orn_A = p.getQuaternionFromEuler(desired_ee_orn_euler_A)
     desired_ee_orn_B = p.getQuaternionFromEuler(desired_ee_orn_euler_B)
 
@@ -145,29 +148,46 @@ class ObjDyn:
     self.hasPrevPose = 1
 
     keys = p.getKeyboardEvents()
-    close_cmd = ord('c')
-    open_cmd = ord('o')
-    gripper_A = ord('a')
-    gripper_B = ord('b')
-    if close_cmd in keys:
-      # print("Close gripper")
-      if gripper_A in keys:
-        self.gripper(self.kukaId_A, self.joints_A, 0.0)
-      elif gripper_B in keys:
-        self.gripper(self.kukaId_B, self.joints_B, 0.0)
-      elif len(keys) == 1:
-        self.gripper(self.kukaId_A, self.joints_A, 0.0)
-        self.gripper(self.kukaId_B, self.joints_B, 0.0)
-    elif open_cmd in keys:
-      # print("Open gripper")
-      if gripper_A in keys:
+    robotA = ord('a')
+    robotB = ord('b')
+    robotAB = ord('t') # The two robots.
+    close_gripper = ord('c')
+    open_gripper = ord('o')
+    inc_ee_pos = ord('p') # increment end effector pos (p for plus)
+    dec_ee_pos = ord('m') # decrement end effector pos (m for minus)
+    delta_value = 0.005
+    
+    if robotA in keys:
+      if open_gripper in keys:
         self.gripper(self.kukaId_A, self.joints_A, 0.085)
-      elif gripper_B in keys:
+      elif close_gripper in keys:
+        self.gripper(self.kukaId_A, self.joints_A, 0.0)
+      elif inc_ee_pos in keys:
+        self.delta_z_A += delta_value
+      elif dec_ee_pos in keys:
+        self.delta_z_A -= delta_value
+    elif robotB in keys:
+      if open_gripper in keys:
         self.gripper(self.kukaId_B, self.joints_B, 0.085)
-      elif len(keys) == 1:
+      elif close_gripper in keys:
+        self.gripper(self.kukaId_B, self.joints_B, 0.0)
+      elif inc_ee_pos in keys:
+        self.delta_z_B += delta_value
+      elif dec_ee_pos in keys:
+        self.delta_z_B -= delta_value
+    elif robotAB in keys:
+      if open_gripper in keys:
         self.gripper(self.kukaId_A, self.joints_A, 0.085)
         self.gripper(self.kukaId_B, self.joints_B, 0.085)
-
+      elif close_gripper in keys:
+        self.gripper(self.kukaId_A, self.joints_A, 0.0)
+        self.gripper(self.kukaId_B, self.joints_B, 0.0)
+      elif inc_ee_pos in keys:
+        self.delta_z_A += delta_value
+        self.delta_z_B += delta_value
+      elif dec_ee_pos in keys:
+        self.delta_z_A -= delta_value
+        self.delta_z_B -= delta_value
 
   def gripper(self, kukaId, joints, gripper_opening_length, mode=p.POSITION_CONTROL):
         '''
