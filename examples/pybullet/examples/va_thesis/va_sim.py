@@ -18,6 +18,7 @@ class ObjDyn:
     p.loadURDF("plane.urdf", [0, 0, -0.3], useFixedBase=True)
     self.kukaId_A = p.loadURDF("va_kuka/va_iiwa_model.urdf", [-0.3, 0, 0], useFixedBase=True)
     self.kukaId_B = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0.3, 0, 0], useFixedBase=True)
+    self.grasped_object = p.loadURDF("va_kuka/grasp_object.urdf", [0, 0.7, 0.02], useFixedBase=False)
     p.setGravity(0, 0, -9.81)
     self.kukaEndEffectorIndex = 7
     self.totalNumJoints = p.getNumJoints(self.kukaId_A)
