@@ -16,34 +16,41 @@ class ObjDyn:
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.loadURDF("plane.urdf", [0, 0, -0.3], useFixedBase=True)
-    self.kukaId = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0, 0, 0], useFixedBase=True)
-    p.resetBasePositionAndOrientation(self.kukaId, [0, 0, 0], [0, 0, 0, 1])
+    self.kukaId_A = p.loadURDF("va_kuka/va_iiwa_model.urdf", [-0.3, 0, 0], useFixedBase=True)
+    self.kukaId_B = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0.3, 0, 0], useFixedBase=True)
     p.setGravity(0, 0, -9.81)
     self.kukaEndEffectorIndex = 7
-    self.totalNumJoints = p.getNumJoints(self.kukaId)
+    self.totalNumJoints = p.getNumJoints(self.kukaId_A)
     # joint damping coefficents
     self.jd = [0.01] * self.totalNumJoints
     # number of joints for just the arm
     self.numJoints = 7
+
+    self.joints_A = self.GetJointInfo(self.kukaId_A)
+    self.joints_B = self.GetJointInfo(self.kukaId_B)
 
     self.t = 0.
     self.useSimulation = 1
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
 
-    self.prevPose = [0, 0, 0]
-    self.prevPose1 = [0, 0, 0]
+    self.prevPose_A = [0, 0, 0]
+    self.prevPose_B = [0, 0, 0]
+    self.prevPose1_A = [0, 0, 0]
+    self.prevPose1_B = [0, 0, 0]
     self.hasPrevPose = 0
 
     logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
     logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
     
-    self.joints = AttrDict()
+
+  def GetJointInfo(self, kukaId):
+    joints = AttrDict()
     jointInfo = namedtuple("jointInfo", ["id","name","lowerLimit","upperLimit","maxForce","maxVelocity"])
 
     # get jointInfo and index of dummy_center_indicator_link
     for i in range(self.totalNumJoints):
-      info = p.getJointInfo(self.kukaId, i)
+      info = p.getJointInfo(kukaId, i)
       jointID = info[0]
       jointName = info[1].decode("utf-8")
       jointLowerLimit = info[8]
@@ -51,10 +58,9 @@ class ObjDyn:
       jointMaxForce = info[10]
       jointMaxVelocity = info[11]
       singleInfo = jointInfo(jointID, jointName, jointLowerLimit, jointUpperLimit, jointMaxForce, jointMaxVelocity)
-      self.joints[singleInfo.name] = singleInfo
-
-    for i in range(2):
-      print("Body %d's name is %s." % (i, p.getBodyInfo(i)[1]))
+      joints[singleInfo.name] = singleInfo
+    
+    return joints
 
   # --------------------------- Run Simulation --------------------------------
   def Run(self):
@@ -67,56 +73,95 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    desired_ee_pos = [0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos_A = [-0.25, 0.7, 0.52] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos_B = [0.25, 0.7, 0.52]
     #end effector points down, not up (when orientation is used)
-    desired_ee_orn_euler = [0, -math.pi, 0]
-    desired_ee_orn = p.getQuaternionFromEuler(desired_ee_orn_euler)
+    desired_ee_orn_euler_A = [-3.141090814084376, 0.0015622492927442, -1.57108642] #[0, -math.pi, 0]
+    desired_ee_orn_euler_B = [3.121090814084376, 0.0015622492927442, 1.57108642]
+    desired_ee_orn_A = p.getQuaternionFromEuler(desired_ee_orn_euler_A)
+    desired_ee_orn_B = p.getQuaternionFromEuler(desired_ee_orn_euler_B)
 
-    jointPoses = p.calculateInverseKinematics(self.kukaId,
+    jointPoses_A = p.calculateInverseKinematics(self.kukaId_A,
                                               self.kukaEndEffectorIndex,
-                                              desired_ee_pos,
-                                              desired_ee_orn,
+                                              desired_ee_pos_A,
+                                              desired_ee_orn_A,
                                               jointDamping=self.jd)
+    
+    jointPoses_B = p.calculateInverseKinematics(self.kukaId_B,
+                                          self.kukaEndEffectorIndex,
+                                          desired_ee_pos_B,
+                                          desired_ee_orn_B,
+                                          jointDamping=self.jd)
     
     if (self.useSimulation):
       for i in range(self.numJoints):
-        p.setJointMotorControl2(bodyIndex=self.kukaId,
+        p.setJointMotorControl2(bodyIndex=self.kukaId_A,
                                 jointIndex=i,
                                 controlMode=p.POSITION_CONTROL,
-                                targetPosition=jointPoses[i],
+                                targetPosition=jointPoses_A[i],
                                 targetVelocity=0,
                                 force=500,
                                 positionGain=0.3,
                                 velocityGain=1)
+
+        p.setJointMotorControl2(bodyIndex=self.kukaId_B,
+                                jointIndex=i,
+                                controlMode=p.POSITION_CONTROL,
+                                targetPosition=jointPoses_B[i],
+                                targetVelocity=0,
+                                force=500,
+                                positionGain=0.3,
+                                velocityGain=1)
+
     else:
       #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
       for i in range(self.numJoints):
-        p.resetJointState(self.kukaId, i, jointPoses[i])
+        p.resetJointState(self.kukaId_A, i, jointPoses_A[i])
+        p.resetJointState(self.kukaId_B, i, jointPoses_B[i])
     
-    ls = p.getLinkState(self.kukaId, self.kukaEndEffectorIndex)
+    ls_A = p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
+    ls_B = p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
 
     if (self.hasPrevPose):
       #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
       #use 0 for no-removal
       trailDuration = 15
-      p.addUserDebugLine(self.prevPose, desired_ee_pos, [0, 0, 0.3], 1, trailDuration)
-      p.addUserDebugLine(self.prevPose1, ls[4], [1, 0, 0], 1, trailDuration)
-    self.prevPose = desired_ee_pos
-    self.prevPose1 = ls[4]
+      p.addUserDebugLine(self.prevPose_A, desired_ee_pos_A, [0, 0, 0.3], 1, trailDuration)
+      p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
+      p.addUserDebugLine(self.prevPose_B, desired_ee_pos_B, [0, 0, 0.3], 1, trailDuration)
+      p.addUserDebugLine(self.prevPose1_B, ls_B[4], [1, 0, 0], 1, trailDuration)
+    self.prevPose_A = desired_ee_pos_A
+    self.prevPose1_A = ls_A[4]
+    self.prevPose_B = desired_ee_pos_B
+    self.prevPose1_B = ls_B[4]
     self.hasPrevPose = 1
 
     keys = p.getKeyboardEvents()
     close_cmd = ord('c')
     open_cmd = ord('o')
+    gripper_A = ord('a')
+    gripper_B = ord('b')
     if close_cmd in keys:
       # print("Close gripper")
-      self.gripper(0.0)
+      if gripper_A in keys:
+        self.gripper(self.kukaId_A, self.joints_A, 0.0)
+      elif gripper_B in keys:
+        self.gripper(self.kukaId_B, self.joints_B, 0.0)
+      elif len(keys) == 1:
+        self.gripper(self.kukaId_A, self.joints_A, 0.0)
+        self.gripper(self.kukaId_B, self.joints_B, 0.0)
     elif open_cmd in keys:
       # print("Open gripper")
-      self.gripper(0.085)
+      if gripper_A in keys:
+        self.gripper(self.kukaId_A, self.joints_A, 0.085)
+      elif gripper_B in keys:
+        self.gripper(self.kukaId_B, self.joints_B, 0.085)
+      elif len(keys) == 1:
+        self.gripper(self.kukaId_A, self.joints_A, 0.085)
+        self.gripper(self.kukaId_B, self.joints_B, 0.085)
 
 
-  def gripper(self, gripper_opening_length, mode=p.POSITION_CONTROL):
+  def gripper(self, kukaId, joints, gripper_opening_length, mode=p.POSITION_CONTROL):
         '''
         Gripper commands need to be mirrored to simulate behavior of the actual
         UR5. Converts one command input to 6 joint positions, used for the
@@ -141,15 +186,15 @@ class ObjDyn:
         # gripper control
         gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
 
-        p.setJointMotorControl2(self.kukaId,
-                                self.joints[gripper_main_control_joint_name].id,
+        p.setJointMotorControl2(kukaId,
+                                joints[gripper_main_control_joint_name].id,
                                 p.POSITION_CONTROL,
                                 targetPosition=gripper_opening_angle,
-                                force=self.joints[gripper_main_control_joint_name].maxForce,
-                                maxVelocity=self.joints[gripper_main_control_joint_name].maxVelocity)
+                                force=joints[gripper_main_control_joint_name].maxForce,
+                                maxVelocity=joints[gripper_main_control_joint_name].maxVelocity)
         for i in range(len(mimic_joint_name)):
-            joint = self.joints[mimic_joint_name[i]]
-            p.setJointMotorControl2(self.kukaId, joint.id, p.POSITION_CONTROL,
+            joint = joints[mimic_joint_name[i]]
+            p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
                                     targetPosition=gripper_opening_angle * mimic_multiplier[i],
                                     force=joint.maxForce,
                                     maxVelocity=joint.maxVelocity)
