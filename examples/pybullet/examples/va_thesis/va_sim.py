@@ -30,12 +30,18 @@ class ObjDyn:
     self.joints_A = self.GetJointInfo(self.kukaId_A)
     self.joints_B = self.GetJointInfo(self.kukaId_B)
 
+    p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
+    p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
+    p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
+    p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
+
     self.t = 0.
     self.useSimulation = 1
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
 
     initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+    self.model_input = None
 
     for i in range(self.numJoints):
       p.resetJointState(self.kukaId_A, i, initPose[i])
@@ -129,6 +135,14 @@ class ObjDyn:
       for i in range(self.numJoints):
         p.resetJointState(self.kukaId_A, i, jointPoses_A[i])
         p.resetJointState(self.kukaId_B, i, jointPoses_B[i])
+    
+    # ----- Get model input --------
+    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
+    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    wrench_A = [None] * 6
+    wrench_B = [None] * 6
+    # print(obj_pose)
+    self.model_input = wrench_A + wrench_B + obj_pose
     
     ls_A = p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
     ls_B = p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
@@ -231,6 +245,9 @@ class ObjDyn:
 
 if __name__ == '__main__':
   iiwa = ObjDyn()
+  model_input = None
   while 1:
     iiwa.Run()
+    model_input = iiwa.model_input
+    print(model_input)
 # p.disconnect()
