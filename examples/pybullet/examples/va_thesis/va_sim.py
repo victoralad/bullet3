@@ -231,25 +231,47 @@ class ObjDyn:
         # gripper control
         gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
 
-        c = p.createConstraint(kukaId,
-                       10,
-                       kukaId,
-                       15,
-                       jointType=p.JOINT_GEAR,
-                       jointAxis=[0, 1, 0],
-                       parentFramePosition=[0, 0, 0],
-                       childFramePosition=[0, 0, 0])
-        p.changeConstraint(c, gearRatio=1, erp=0.1, maxForce=150)
+        if kukaId == self.kukaId_A:
+          a = p.createConstraint(kukaId,
+                        14,
+                        kukaId,
+                        15,
+                        jointType=p.JOINT_FIXED,
+                        jointAxis=[0, 0, 1],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+          p.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=50)
 
-        d = p.createConstraint(kukaId,
-                      12,
-                      kukaId,
-                      17,
-                      jointType=p.JOINT_GEAR,
-                      jointAxis=[0, 1, 0],
-                      parentFramePosition=[0, 0, 0],
-                      childFramePosition=[0, 0, 0])
-        p.changeConstraint(d, gearRatio=1, erp=0.1, maxForce=150)
+          b = p.createConstraint(kukaId,
+                        16,
+                        kukaId,
+                        17,
+                        jointType=p.JOINT_FIXED,
+                        jointAxis=[0, 0, 1],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+          p.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=50)
+
+        elif kukaId == self.kukaId_B:
+          c = p.createConstraint(kukaId,
+                        14,
+                        kukaId,
+                        15,
+                        jointType=p.JOINT_FIXED,
+                        jointAxis=[0, 0, 1],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+          p.changeConstraint(c, gearRatio=-1, erp=0.1, maxForce=50)
+
+          d = p.createConstraint(kukaId,
+                        16,
+                        kukaId,
+                        17,
+                        jointType=p.JOINT_FIXED,
+                        jointAxis=[0, 0, 1],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+          p.changeConstraint(d, gearRatio=-1, erp=0.1, maxForce=50)
 
         p.setJointMotorControl2(kukaId,
                                 joints[gripper_main_control_joint_name].id,
