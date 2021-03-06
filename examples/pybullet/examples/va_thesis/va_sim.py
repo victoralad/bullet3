@@ -297,7 +297,7 @@ class ObjDyn:
   
   def SetGripperConstraint(self, kukaId):
     a = p.createConstraint(kukaId,
-                  14,
+                  10,
                   kukaId,
                   15,
                   jointType=p.JOINT_FIXED,
@@ -307,7 +307,7 @@ class ObjDyn:
     p.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=50)
 
     b = p.createConstraint(kukaId,
-                  16,
+                  12,
                   kukaId,
                   17,
                   jointType=p.JOINT_FIXED,
@@ -315,7 +315,28 @@ class ObjDyn:
                   parentFramePosition=[0, 0, 0],
                   childFramePosition=[0, 0, 0])
     p.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=50)
-    print("--------", a, b, kukaId)
+
+    c = p.createConstraint(kukaId,
+                  14,
+                  kukaId,
+                  15,
+                  jointType=p.JOINT_FIXED,
+                  jointAxis=[0, 0, 1],
+                  parentFramePosition=[0, 0, 0],
+                  childFramePosition=[0, 0, 0])
+    p.changeConstraint(c, gearRatio=-1, erp=0.1, maxForce=50)
+
+    d = p.createConstraint(kukaId,
+                  16,
+                  kukaId,
+                  17,
+                  jointType=p.JOINT_FIXED,
+                  jointAxis=[0, 0, 1],
+                  parentFramePosition=[0, 0, 0],
+                  childFramePosition=[0, 0, 0])
+    p.changeConstraint(d, gearRatio=-1, erp=0.1, maxForce=50)
+    
+    # print("--------", a, b, kukaId)
 
 
 
