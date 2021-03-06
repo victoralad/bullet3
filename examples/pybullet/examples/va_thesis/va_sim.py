@@ -30,11 +30,6 @@ class ObjDyn:
     self.joints_A = self.GetJointInfo(self.kukaId_A)
     self.joints_B = self.GetJointInfo(self.kukaId_B)
 
-    # p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
-    # p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
-    # p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
-    # p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
-
     p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
     robots = [self.kukaId_A, self.kukaId_B]
     for robot in robots:
@@ -236,50 +231,6 @@ class ObjDyn:
         # gripper control
         gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
 
-      # if kukaId == self.kukaId_A:
-      #   a = p.createConstraint(kukaId,
-      #                 14,
-      #                 kukaId,
-      #                 15,
-      #                 jointType=p.JOINT_FIXED,
-      #                 jointAxis=[0, 0, 1],
-      #                 parentFramePosition=[0, 0, 0],
-      #                 childFramePosition=[0, 0, 0])
-      #   p.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=50)
-
-      #   b = p.createConstraint(kukaId,
-      #                 16,
-      #                 kukaId,
-      #                 17,
-      #                 jointType=p.JOINT_FIXED,
-      #                 jointAxis=[0, 0, 1],
-      #                 parentFramePosition=[0, 0, 0],
-      #                 childFramePosition=[0, 0, 0])
-      #   p.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=50)
-      #   print("--------", a, b, kukaId)
-
-      #   elif kukaId == self.kukaId_B:
-      #     c = p.createConstraint(kukaId,
-      #                   14,
-      #                   kukaId,
-      #                   15,
-      #                   jointType=p.JOINT_FIXED,
-      #                   jointAxis=[0, 0, 1],
-      #                   parentFramePosition=[0, 0, 0],
-      #                   childFramePosition=[0, 0, 0])
-      #     p.changeConstraint(c, gearRatio=-1, erp=0.1, maxForce=50)
-
-      #     d = p.createConstraint(kukaId,
-      #                   16,
-      #                   kukaId,
-      #                   17,
-      #                   jointType=p.JOINT_FIXED,
-      #                   jointAxis=[0, 0, 1],
-      #                   parentFramePosition=[0, 0, 0],
-      #                   childFramePosition=[0, 0, 0])
-      #     p.changeConstraint(d, gearRatio=-1, erp=0.1, maxForce=50)
-      #     print("--------", c, d)
-
         p.setJointMotorControl2(kukaId,
                                 joints[gripper_main_control_joint_name].id,
                                 p.POSITION_CONTROL,
@@ -336,9 +287,6 @@ class ObjDyn:
                   childFramePosition=[0, 0, 0])
     p.changeConstraint(d, gearRatio=-1, erp=0.1, maxForce=50)
     
-    # print("--------", a, b, kukaId)
-
-
 
 if __name__ == '__main__':
   iiwa = ObjDyn()
