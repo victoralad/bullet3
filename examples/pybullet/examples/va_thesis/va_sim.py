@@ -36,8 +36,11 @@ class ObjDyn:
     # p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
 
     p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
-    self.SetGripperConstraint(self.kukaId_A)
-    self.SetGripperConstraint(self.kukaId_B)
+    robots = [self.kukaId_A, self.kukaId_B]
+    for robot in robots:
+      p.setJointMotorControl2(robot, 15, p.VELOCITY_CONTROL, force=0.0)
+      p.setJointMotorControl2(robot, 17, p.VELOCITY_CONTROL, force=0.0)
+      self.SetGripperConstraint(robot)
 
     self.t = 0.
     self.useSimulation = 1
