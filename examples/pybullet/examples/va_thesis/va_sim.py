@@ -30,10 +30,12 @@ class ObjDyn:
     self.joints_A = self.GetJointInfo(self.kukaId_A)
     self.joints_B = self.GetJointInfo(self.kukaId_B)
 
-    p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
-    p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
-    p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
-    p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
+    # p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
+    # p.changeDynamics(self.kukaId_A, self.joints_A["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
+    # p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_right_finger_tip_joint"].id, lateralFriction = 5)
+    # p.changeDynamics(self.kukaId_B, self.joints_B["robotiq_85_left_finger_tip_joint"].id, lateralFriction = 5)
+
+    p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
 
     self.t = 0.
     self.useSimulation = 1
@@ -69,6 +71,7 @@ class ObjDyn:
       info = p.getJointInfo(kukaId, i)
       jointID = info[0]
       jointName = info[1].decode("utf-8")
+      print(jointName, jointID)
       jointLowerLimit = info[8]
       jointUpperLimit = info[9]
       jointMaxForce = info[10]
@@ -228,18 +231,41 @@ class ObjDyn:
         # gripper control
         gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
 
+        c = p.createConstraint(kukaId,
+                       10,
+                       kukaId,
+                       15,
+                       jointType=p.JOINT_GEAR,
+                       jointAxis=[0, 1, 0],
+                       parentFramePosition=[0, 0, 0],
+                       childFramePosition=[0, 0, 0])
+        p.changeConstraint(c, gearRatio=1, erp=0.1, maxForce=150)
+
+        d = p.createConstraint(kukaId,
+                      12,
+                      kukaId,
+                      17,
+                      jointType=p.JOINT_GEAR,
+                      jointAxis=[0, 1, 0],
+                      parentFramePosition=[0, 0, 0],
+                      childFramePosition=[0, 0, 0])
+        p.changeConstraint(d, gearRatio=1, erp=0.1, maxForce=150)
+
         p.setJointMotorControl2(kukaId,
                                 joints[gripper_main_control_joint_name].id,
                                 p.POSITION_CONTROL,
                                 targetPosition=gripper_opening_angle,
                                 force=joints[gripper_main_control_joint_name].maxForce,
                                 maxVelocity=joints[gripper_main_control_joint_name].maxVelocity)
+        # print("--------")
+        
         for i in range(len(mimic_joint_name)):
-            joint = joints[mimic_joint_name[i]]
-            p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
-                                    targetPosition=gripper_opening_angle * mimic_multiplier[i],
-                                    force=joint.maxForce,
-                                    maxVelocity=joint.maxVelocity)
+          joint = joints[mimic_joint_name[i]]
+          # print(joint.id)
+          p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
+                                  targetPosition=gripper_opening_angle * mimic_multiplier[i],
+                                  force=joint.maxForce,
+                                  maxVelocity=joint.maxVelocity)
 
 
 
@@ -249,5 +275,5 @@ if __name__ == '__main__':
   while 1:
     iiwa.Run()
     model_input = iiwa.model_input
-    print(model_input)
+    # print(model_input)
 # p.disconnect()

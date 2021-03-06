@@ -600,6 +600,13 @@
             iyx = "0.000000" iyy = "0.000005" iyz = "0.000000"
             izx = "0.000000" izy = "0.000000" izz = "0.000006" />
     </inertial>
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="1000.0"/>
+      <spinning_friction value="0.1"/>
+      <lateral_friction value="1.0"/>
+    </contact>
   </link>
 
   <link name="robotiq_85_right_finger_tip_link">
@@ -621,6 +628,13 @@
             iyx = "0.000000" iyy = "0.000005" iyz = "0.000000"
             izx = "0.000000" izy = "0.000000" izz = "0.000006" />
     </inertial>
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="1000.0"/>
+      <spinning_friction value="0.1"/>
+      <lateral_friction value="1.0"/>
+    </contact>
   </link>
         
 </robot>
