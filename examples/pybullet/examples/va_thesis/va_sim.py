@@ -30,6 +30,12 @@ class ObjDyn:
     self.joints_A = self.GetJointInfo(self.kukaId_A)
     self.joints_B = self.GetJointInfo(self.kukaId_B)
 
+    # Enable force torque sensor for the sensor joint.
+    self.ft_id = self.joints_A["iiwa7_joint_ft300_sensor"].id # The value is the same for robot B.
+    p.enableJointForceTorqueSensor(self.kukaId_A, self.ft_id, 1)
+    p.enableJointForceTorqueSensor(self.kukaId_B, self.ft_id, 1)
+
+
     p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
     robots = [self.kukaId_A, self.kukaId_B]
     for robot in robots:
@@ -144,14 +150,22 @@ class ObjDyn:
     wrench_B = [None] * 6
     desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
 
+    # Get object pose
     obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
     for i in range(len(obj_pose)):
       obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
-    # print(obj_pose_error)
+
+    # Get Wrench measurements at wrist
+    _, _, ft_A, _ = p.getJointState(self.kukaId_A, self.ft_id)
+    _, _, ft_B, _ = p.getJointState(self.kukaId_B, self.ft_id)
+    wrench_A = list(ft_A)
+    wrench_B = list(ft_B)
 
     self.model_input = wrench_A + wrench_B + obj_pose_error
-    
+    assert len(self.model_input) == 18
+
+    # ----------------------------------------------------------------------------------
     ls_A = p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
     ls_B = p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
 
@@ -169,6 +183,7 @@ class ObjDyn:
     self.prevPose1_B = ls_B[4]
     self.hasPrevPose = 1
 
+    # ------------------------------- Get Keyboard events -----------------------------
     keys = p.getKeyboardEvents()
     robotA = ord('a')
     robotB = ord('b')
