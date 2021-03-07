@@ -71,7 +71,6 @@ class ObjDyn:
       info = p.getJointInfo(kukaId, i)
       jointID = info[0]
       jointName = info[1].decode("utf-8")
-      print(jointName, jointID)
       jointLowerLimit = info[8]
       jointUpperLimit = info[9]
       jointMaxForce = info[10]
@@ -139,13 +138,19 @@ class ObjDyn:
         p.resetJointState(self.kukaId_A, i, jointPoses_A[i])
         p.resetJointState(self.kukaId_B, i, jointPoses_B[i])
     
-    # ----- Get model input --------
-    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
-    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    # ----------------------------- Get model input ----------------------------------
+    obj_pose_error = [None] * 6
     wrench_A = [None] * 6
     wrench_B = [None] * 6
-    # print(obj_pose)
-    self.model_input = wrench_A + wrench_B + obj_pose
+    desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
+
+    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
+    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    for i in range(len(obj_pose)):
+      obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
+    # print(obj_pose_error)
+
+    self.model_input = wrench_A + wrench_B + obj_pose_error
     
     ls_A = p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
     ls_B = p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
@@ -240,7 +245,6 @@ class ObjDyn:
         
         for i in range(len(mimic_joint_name)):
           joint = joints[mimic_joint_name[i]]
-          # print(joint.id)
           p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
                                   targetPosition=gripper_opening_angle * mimic_multiplier[i],
                                   force=joint.maxForce,
