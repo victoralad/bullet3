@@ -16,9 +16,9 @@ class ObjDyn:
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.loadURDF("plane.urdf", [0, 0, 0.0], useFixedBase=True)
-    self.kukaId_A = p.loadURDF("va_kuka/va_iiwa_model.urdf", [-0.3, 0, 0], useFixedBase=True)
-    self.kukaId_B = p.loadURDF("va_kuka/va_iiwa_model.urdf", [0.3, 0, 0], useFixedBase=True)
-    self.grasped_object = p.loadURDF("va_kuka/grasp_object.urdf", [0, 0.7, 0.02], useFixedBase=False)
+    self.kukaId_A = p.loadURDF("va_kuka_robot/va_iiwa_model.urdf", [-0.3, 0, 0], useFixedBase=True)
+    self.kukaId_B = p.loadURDF("va_kuka_robot/va_iiwa_model.urdf", [0.3, 0, 0], useFixedBase=True)
+    self.grasped_object = p.loadURDF("va_kuka_robot/grasp_object.urdf", [0, 0.7, 0.02], useFixedBase=False)
     p.setGravity(0, 0, -9.81)
     self.kukaEndEffectorIndex = 7
     self.totalNumJoints = p.getNumJoints(self.kukaId_A)
@@ -64,8 +64,8 @@ class ObjDyn:
     self.delta_z_A = 0.0
     self.delta_z_B = 0.0
 
-    logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
-    logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
+    # logId1 = p.startStateLogging(p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
+    # logId2 = p.startStateLogging(p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
     
 
   def GetJointInfo(self, kukaId):

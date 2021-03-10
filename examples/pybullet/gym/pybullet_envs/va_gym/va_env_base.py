@@ -10,6 +10,8 @@ from datetime import datetime
 from attrdict import AttrDict
 from collections import namedtuple
 
+from va_sim import ObjDyn
+
 class CustomEnv(gym.Env):
   """Custom Environment that follows gym interface"""
   metadata = {'render.modes': ['human']}
@@ -31,14 +33,14 @@ class CustomEnv(gym.Env):
   def step(self, action):
     pass
     # return observation, reward, done, info
-  def reset(self):
-    
-    print("hey")
+  def reset(self, arg):
+    print("hey", test_objDyn.numJoints)
     # return observation  # reward, done, info can't be included
   def render(self, mode='human', close=False):
     pass
 
 if __name__ == '__main__':
   coop_man = CustomEnv()
+  test_objDyn = ObjDyn()
   while 1:
-    coop_man.reset()
+    coop_man.reset(test_objDyn)
