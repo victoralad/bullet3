@@ -3,7 +3,6 @@ import pybullet_data
 
 import time
 import math
-import numpy as np
 
 from datetime import datetime
 from attrdict import AttrDict
@@ -52,9 +51,17 @@ class ObjDyn:
     initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
     self.model_input = None
 
-    for i in range(self.numJoints):
-      p.resetJointState(self.kukaId_A, i, initPose[i])
-      p.resetJointState(self.kukaId_B, i, initPose[i])
+    robot_A_reset = [-1.2212656735008347, -1.3760022822542415, -0.9599299112549509, 1.0666993085876664, 
+      1.0701932682608564, -1.160791080843694, 1.0217919305003904, 0.0, 0.0, 0.0, 0.0045273325757137824, 0.0, 
+      0.00993567190113862, 0.0, -0.19379383483425697, 0.1633531370822506, -0.26123394528575117, 0.22352270857609874]
+    
+    robot_B_reset = [-1.1012207403446566, -1.3560841272647344, -0.904748333938609, 1.054536261429222, 
+      1.0021820583871404, -1.157361423437567, 1.1903968484652814, 0.0, 0.0, 0.0, -0.013179123727937328, 
+      0.0, 0.00031019127734315346, 0.0, -0.18496935768021586, 0.019213888418816952, -0.09600218730971453, 0.07952295260014881]
+
+    for i in range(self.totalNumJoints):
+      p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
+      p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
 
     self.prevPose_A = [0, 0, 0]
     self.prevPose_B = [0, 0, 0]
@@ -183,17 +190,6 @@ class ObjDyn:
     self.prevPose_B = desired_ee_pos_B
     self.prevPose1_B = ls_B[4]
     self.hasPrevPose = 1
-
-    joint_pos_A = [0.0]*self.totalNumJoints
-    joint_pos_B = [0.0]*self.totalNumJoints
-    for i in range(self.totalNumJoints):
-      joint_data_A = p.getJointState(self.kukaId_A, i)
-      joint_pos_A[i] = joint_data_A[0]
-      joint_data_B = p.getJointState(self.kukaId_B, i)
-      joint_pos_B[i] = joint_data_B[0]
-    print("-------------------")
-    print(joint_pos_A)
-    print(joint_pos_B)
 
     # ------------------------------- Get Keyboard events -----------------------------
     keys = p.getKeyboardEvents()
