@@ -48,10 +48,10 @@ class ObjDyn:
     self.useSimulation = 1
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
-
-    initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+    
     self.model_input = None
 
+    initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
     for i in range(self.numJoints):
       p.resetJointState(self.kukaId_A, i, initPose[i])
       p.resetJointState(self.kukaId_B, i, initPose[i])
