@@ -68,9 +68,10 @@ class ResetCoopEnv:
       self.p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       self.p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
 
-    for i in range(1000):
+    for i in range(100):
       self.gripper(self.kukaId_A, self.joints_A, 0.0)
       self.gripper(self.kukaId_B, self.joints_B, 0.0)
+      self.p.stepSimulation()
 
     #####################################################################################
     self.prevPose_A = [0, 0, 0]
@@ -123,49 +124,6 @@ class ResetCoopEnv:
     # self.prevPose1_B = ls_B[4]
     # self.hasPrevPose = 1
 
-    # # ------------------------------- Get Keyboard events -----------------------------
-    # keys = self.p.getKeyboardEvents()
-    # robotA = ord('a')
-    # robotB = ord('b')
-    # robotAB = ord('t') # The two robots.
-    # close_gripper = ord('c')
-    # open_gripper = ord('o')
-    # inc_ee_pos = ord('p') # increment end effector pos (p for plus)
-    # dec_ee_pos = ord('m') # decrement end effector pos (m for minus)
-    # delta_value = 0.005
-    
-    # if robotA in keys:
-    #   if open_gripper in keys:
-    #     self.gripper(self.kukaId_A, self.joints_A, 0.085)
-    #   elif close_gripper in keys:
-    #     self.gripper(self.kukaId_A, self.joints_A, 0.0)
-    #   elif inc_ee_pos in keys:
-    #     self.delta_z_A += delta_value
-    #   elif dec_ee_pos in keys:
-    #     self.delta_z_A -= delta_value
-    # elif robotB in keys:
-    #   if open_gripper in keys:
-    #     self.gripper(self.kukaId_B, self.joints_B, 0.085)
-    #   elif close_gripper in keys:
-    #     self.gripper(self.kukaId_B, self.joints_B, 0.0)
-    #   elif inc_ee_pos in keys:
-    #     self.delta_z_B += delta_value
-    #   elif dec_ee_pos in keys:
-    #     self.delta_z_B -= delta_value
-    # elif robotAB in keys:
-    #   if open_gripper in keys:
-    #     self.gripper(self.kukaId_A, self.joints_A, 0.085)
-    #     self.gripper(self.kukaId_B, self.joints_B, 0.085)
-    #   elif close_gripper in keys:
-    #     self.gripper(self.kukaId_A, self.joints_A, 0.0)
-    #     self.gripper(self.kukaId_B, self.joints_B, 0.0)
-    #   elif inc_ee_pos in keys:
-    #     self.delta_z_A += delta_value
-    #     self.delta_z_B += delta_value
-    #   elif dec_ee_pos in keys:
-    #     self.delta_z_A -= delta_value
-    #     self.delta_z_B -= delta_value
-
   def gripper(self, kukaId, joints, gripper_opening_length):
     '''
     Gripper commands need to be mirrored to simulate behavior of the actual
@@ -187,7 +145,6 @@ class ResetCoopEnv:
                         "robotiq_85_left_finger_tip_joint",
                         "robotiq_85_right_finger_tip_joint"]
     mimic_multiplier = [1, 1, 1, -1, -1]
-    print("yooooooooooooooooooooooooooooooooooooooo")
 
     # gripper control
     gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
