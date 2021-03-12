@@ -11,8 +11,6 @@ from collections import namedtuple
 class ResetCoopEnv:
 
   def __init__(self, p):
-    # self.p.connect(self.p.GUI)
-    # self.p.setAdditionalSearchPath(pybullet_data.getDataPath())
     self.p = p
     self.p.loadURDF("plane.urdf", [0, 0, 0.0], useFixedBase=True)
     self.kukaId_A = self.p.loadURDF("va_kuka_robot/va_iiwa_model.urdf", [-0.3, 0, 0], useFixedBase=True)
@@ -46,8 +44,7 @@ class ResetCoopEnv:
     self.useRealTimeSimulation = 0
     self.p.setRealTimeSimulation(self.useRealTimeSimulation)
 
-    self.model_input = None
-
+    # Initialize the robots to a position where the grippers can grasp the object
     robot_A_reset = [-1.184011299413845, -1.4364158475353175, -1.0899721376131706, 1.0667906797236881, 1.2044237679252714, 
       -1.2280706100083119, 0.988134098323069, 0.0, 0.0, 0.0, 0.003781686634043995, 0.0, 0.014366518891656452, 
       0.0, -0.16958579599715132, 0.1427849400696791, -0.22500275319458551, 0.19728657436618674]
@@ -60,17 +57,40 @@ class ResetCoopEnv:
       self.p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       self.p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
 
+    # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
     for i in range(20):
       self.gripper(self.kukaId_A, self.joints_A, 0.0)
       self.gripper(self.kukaId_B, self.joints_B, 0.0)
       self.p.stepSimulation()
     
-    # initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
-    # for i in range(self.numJoints):
-    #   p.resetJointState(self.kukaId_A, i, initPose[i])
-    #   p.resetJointState(self.kukaId_B, i, initPose[i])
-    # # self.p.stepSimulation()
+    # Move the object away from the floor after grasping it
 
+    joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
+    joint_pos_B = [-1.0486248920719832, -1.1473636221157095, -1.1177883364427017, 1.024559282045054, 0.9666073630561682, -1.4632516957457011, 1.208288290582244]
+    
+    for i in range(20):
+      if (self.useSimulation):
+        for i in range(self.numJoints):
+          p.setJointMotorControl2(bodyIndex=self.kukaId_A,
+                                  jointIndex=i,
+                                  controlMode=self.p.POSITION_CONTROL,
+                                  targetPosition=joint_pos_A[i],
+                                  targetVelocity=0,
+                                  force=500,
+                                  positionGain=0.1,
+                                  velocityGain=0.5)
+
+          p.setJointMotorControl2(bodyIndex=self.kukaId_B,
+                                  jointIndex=i,
+                                  controlMode=self.p.POSITION_CONTROL,
+                                  targetPosition=joint_pos_B[i],
+                                  targetVelocity=0,
+                                  force=500,
+                                  positionGain=0.1,
+                                  velocityGain=0.5)
+      self.p.stepSimulation()
+
+  # Computes joint attributes that are useful in other computations.
   def GetJointInfo(self, kukaId):
     joints = AttrDict()
     jointInfo = namedtuple("jointInfo", ["id","name","lowerLimit","upperLimit","maxForce","maxVelocity"])
@@ -89,6 +109,7 @@ class ResetCoopEnv:
     
     return joints
 
+  # Controls the gripper (open and close commands)
   def gripper(self, kukaId, joints, gripper_opening_length):
     '''
     Gripper commands need to be mirrored to simulate behavior of the actual
@@ -128,6 +149,7 @@ class ResetCoopEnv:
                               force=joint.maxForce,
                               maxVelocity=joint.maxVelocity)
   
+  # Constrains the joints of the grippers so they appear real in simulation.
   def SetGripperConstraint(self, kukaId):
     a = self.p.createConstraint(kukaId,
                   10,

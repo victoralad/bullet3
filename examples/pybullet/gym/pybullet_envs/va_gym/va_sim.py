@@ -119,7 +119,6 @@ class ObjDyn:
                                           jointDamping=self.jd)
     
     if (self.useSimulation):
-      a = 2
       for i in range(self.numJoints):
         p.setJointMotorControl2(bodyIndex=self.kukaId_A,
                                 jointIndex=i,
