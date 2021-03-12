@@ -8,8 +8,6 @@ from datetime import datetime
 from attrdict import AttrDict
 from collections import namedtuple
 
-#clid = self.p.connect(self.p.SHARED_MEMORY)
-
 class ResetCoopEnv:
 
   def __init__(self, p):
@@ -36,7 +34,6 @@ class ResetCoopEnv:
     self.p.enableJointForceTorqueSensor(self.kukaId_A, self.ft_id, 1)
     self.p.enableJointForceTorqueSensor(self.kukaId_B, self.ft_id, 1)
 
-
     self.p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
     robots = [self.kukaId_A, self.kukaId_B]
     for robot in robots:
@@ -51,11 +48,6 @@ class ResetCoopEnv:
 
     self.model_input = None
 
-    # initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
-    # for i in range(self.numJoints):
-    #   self.p.resetJointState(self.kukaId_A, i, initPose[i])
-    #   self.p.resetJointState(self.kukaId_B, i, initPose[i])
-
     robot_A_reset = [-1.184011299413845, -1.4364158475353175, -1.0899721376131706, 1.0667906797236881, 1.2044237679252714, 
       -1.2280706100083119, 0.988134098323069, 0.0, 0.0, 0.0, 0.003781686634043995, 0.0, 0.014366518891656452, 
       0.0, -0.16958579599715132, 0.1427849400696791, -0.22500275319458551, 0.19728657436618674]
@@ -68,24 +60,16 @@ class ResetCoopEnv:
       self.p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       self.p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
 
-    for i in range(100):
+    for i in range(20):
       self.gripper(self.kukaId_A, self.joints_A, 0.0)
       self.gripper(self.kukaId_B, self.joints_B, 0.0)
       self.p.stepSimulation()
-
-    #####################################################################################
-    self.prevPose_A = [0, 0, 0]
-    self.prevPose_B = [0, 0, 0]
-    self.prevPose1_A = [0, 0, 0]
-    self.prevPose1_B = [0, 0, 0]
-    self.hasPrevPose = 0
-
-    self.delta_z_A = 0.0
-    self.delta_z_B = 0.0
-
-    # logId1 = self.p.startStateLogging(self.p.STATE_LOGGING_GENERIC_ROBOT, "LOG0001.txt", [0, 1, 2])
-    # logId2 = self.p.startStateLogging(self.p.STATE_LOGGING_CONTACT_POINTS, "LOG0002.txt", bodyUniqueIdA=2)
     
+    # initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+    # for i in range(self.numJoints):
+    #   p.resetJointState(self.kukaId_A, i, initPose[i])
+    #   p.resetJointState(self.kukaId_B, i, initPose[i])
+    # # self.p.stepSimulation()
 
   def GetJointInfo(self, kukaId):
     joints = AttrDict()
@@ -104,25 +88,6 @@ class ResetCoopEnv:
       joints[singleInfo.name] = singleInfo
     
     return joints
-
-
-    # # ----------------------------------------------------------------------------------
-    # ls_A = self.p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
-    # ls_B = self.p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
-
-    # if (self.hasPrevPose):
-    #   #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
-    #   #use 0 for no-removal
-    #   trailDuration = 15
-    #   self.p.addUserDebugLine(self.prevPose_A, desired_ee_pos_A, [0, 0, 0.3], 1, trailDuration)
-    #   self.p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
-    #   self.p.addUserDebugLine(self.prevPose_B, desired_ee_pos_B, [0, 0, 0.3], 1, trailDuration)
-    #   self.p.addUserDebugLine(self.prevPose1_B, ls_B[4], [1, 0, 0], 1, trailDuration)
-    # self.prevPose_A = desired_ee_pos_A
-    # self.prevPose1_A = ls_A[4]
-    # self.prevPose_B = desired_ee_pos_B
-    # self.prevPose1_B = ls_B[4]
-    # self.hasPrevPose = 1
 
   def gripper(self, kukaId, joints, gripper_opening_length):
     '''
@@ -203,13 +168,3 @@ class ResetCoopEnv:
                   parentFramePosition=[0, 0, 0],
                   childFramePosition=[0, 0, 0])
     self.p.changeConstraint(d, gearRatio=-1, erp=0.1, maxForce=50)
-    
-
-if __name__ == '__main__':
-  iiwa = ResetCoopEnv()
-  model_input = None
-  while 1:
-    # iiwa.Run()
-    model_input = iiwa.model_input
-    # print(model_input)
-# self.p.disconnect()
