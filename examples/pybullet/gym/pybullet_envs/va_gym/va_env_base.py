@@ -36,7 +36,7 @@ class CoopEnv(gym.Env):
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     # InitCoopEnv(p)
     self.reset_coop_env = ResetCoopEnv(p)
-    self.step_coop_env = StepCoopEnv(p)
+    # self.step_coop_env = StepCoopEnv(p)
   def step(self, action):
     pass
     # return observation, reward, done, info
@@ -48,6 +48,8 @@ class CoopEnv(gym.Env):
 
 if __name__ == '__main__':
   coop = CoopEnv()
+  coop.reset(p)
   while 1:
-    coop.reset(p)
+      a = 1
+    # coop.reset(p)
     # coop.step()
