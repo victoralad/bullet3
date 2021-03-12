@@ -29,26 +29,36 @@ class CoopEnv(gym.Env):
     HEIGHT = 5
     WIDTH = 5
     N_CHANNELS = 10
-    self.observation_space = spaces.Box(low=0, high=255,
-                                        shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
+    self.observation_space = spaces.Box(low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
     
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
-    # InitCoopEnv(p)
     self.reset_coop_env = ResetCoopEnv(p)
-    # self.step_coop_env = StepCoopEnv(p)
+    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.numJoints, self.reset_coop_env.totalNumJoints, self.reset_coop_env.useSimulation)
+
   def step(self, action):
-    pass
-    # return observation, reward, done, info
-  def reset(self, arg):
-    self.reset_coop_env.ResetCoop(arg)
-    # return observation  # reward, done, info can't be included
+    self.step_coop_env.apply_action(action, p)
+    observation = self.step_coop_env.GetObservation(p)
+    reward = self.step_coop_env.GetReward(p)
+    done = None
+    info = None
+    print(reward)
+    print(observation)
+    return observation, reward, done, info
+
+  def reset(self):
+    self.reset_coop_env.ResetCoop(p)
+    observation = self.reset_coop_env.GetObservation(p)
+    return observation  # reward, done, info can't be included
+
   def render(self, mode='human', close=False):
     pass
 
 if __name__ == '__main__':
   coop = CoopEnv()
-  coop.reset(p)
+  coop.reset()
+  action = [0.1]*12
+  coop.step(action)
   while 1:
       a = 1
     # coop.reset(p)
