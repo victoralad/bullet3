@@ -34,7 +34,7 @@ class CoopEnv(gym.Env):
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     self.reset_coop_env = ResetCoopEnv(p)
-    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.numJoints, self.reset_coop_env.totalNumJoints, self.reset_coop_env.useSimulation)
+    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, p)
 
   def step(self, action):
     self.step_coop_env.apply_action(action, p)

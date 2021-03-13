@@ -9,13 +9,16 @@ from va_reset import ResetCoopEnv
 
 class StepCoopEnv(ResetCoopEnv):
 
-  def __init__(self, robots, numJoints, totalNumJoints, useSimulation):
+  def __init__(self, robots, grasped_object, ft_id, p):
     self.robot_A = robots[0]
     self.robot_B = robots[1]
-    self.numJoints = numJoints
-    self.useSimulation = useSimulation
-    # joint damping coefficents
-    self.jd = [0.01] * totalNumJoints
+    self.kukaEndEffectorIndex = 7
+    self.totalNumJoints = p.getNumJoints(self.robot_A)
+    self.numJoints = 7 # number of joints for just the arm
+    self.jd = [0.01] * self.totalNumJoints
+    self.useSimulation = 1
+    self.ft_id = ft_id # F/T sensor joint id.
+    self.grasped_object = grasped_object
 
   def apply_action(self, action, p):
     assert len(action) == 12
@@ -55,10 +58,30 @@ class StepCoopEnv(ResetCoopEnv):
                                 force=500,
                                 positionGain=0.1,
                                 velocityGain=0.5)
-    self.p.stepSimulation()
+    p.stepSimulation()
   
   def GetObservation(self, p):
-    return ResetCoopEnv.GetObservation(p)
+    # ----------------------------- Get model input ----------------------------------
+    obj_pose_error = [None] * 6
+    wrench_A = [None] * 6
+    wrench_B = [None] * 6
+    desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
+
+    # Get object pose
+    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
+    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    for i in range(len(obj_pose)):
+      obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
+
+    # Get Wrench measurements at wrist
+    _, _, ft_A, _ = p.getJointState(self.robot_A, self.ft_id)
+    _, _, ft_B, _ = p.getJointState(self.robot_B, self.ft_id)
+    wrench_A = list(ft_A)
+    wrench_B = list(ft_B)
+
+    self.model_input = wrench_A + wrench_B + obj_pose_error
+    assert len(self.model_input) == 18
+    return self.model_input
   
   def GetReward(self, p):
     reward = None
