@@ -92,7 +92,8 @@ class StepCoopEnv(ResetCoopEnv):
     done = False
     info = None
     obj_pose_error = self.model_input[-6:]
-    if np.linalg.norm(obj_pose_error) > 0.2:
+    norm = np.linalg.norm(obj_pose_error)
+    if norm > 0.2:
       done = True
-      info = "The error is significant enough to reset the training episode."
+      info = "The norm of the object pose error, {}, is significant enough to reset the training episode.".format(norm)
     return done, info
