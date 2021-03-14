@@ -86,6 +86,13 @@ class StepCoopEnv(ResetCoopEnv):
   
   def GetReward(self, p):
     reward = None
+    u = np.array(self.model_input[-6:])
+    Q = np.eye(len(u))
+    obj_pose_error_reward =  -u.T @ u
+    fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
+    wrench_reward = -fI.T @ fI
+    print(wrench_reward)
+    reward = obj_pose_error_reward + wrench_reward
     return reward
   
   def GetInfo(self, p):
@@ -93,7 +100,7 @@ class StepCoopEnv(ResetCoopEnv):
     info = None
     obj_pose_error = self.model_input[-6:]
     norm = np.linalg.norm(obj_pose_error)
-    if norm > 0.2:
+    if norm > 2.0:
       done = True
       info = "The norm of the object pose error, {}, is significant enough to reset the training episode.".format(norm)
     return done, info
