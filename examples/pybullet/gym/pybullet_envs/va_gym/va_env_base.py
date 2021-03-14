@@ -22,14 +22,14 @@ class CoopEnv(gym.Env):
     super(CoopEnv, self).__init__()
     # Define action and observation space
     # They must be gym.spaces objects
-    # Example when using discrete actions:
-    N_DISCRETE_ACTIONS = 5
-    self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
-    # Example for using image as input:
-    HEIGHT = 5
-    WIDTH = 5
-    N_CHANNELS = 10
-    self.observation_space = spaces.Box(low=0, high=255, shape=(HEIGHT, WIDTH, N_CHANNELS), dtype=np.uint8)
+    num_robots = 2
+    low_action = [-1.0, -1.0, 0.0, -3.14, -3.14, -3.14]
+    high_action = [1.0, 1.0, 1.0, 3.14, 3.14, 3.14]
+    self.action_space = spaces.Box(np.array([low_action]*num_robots), np.array([high_action]*num_robots))
+
+    obs_space = np.array([100]*6*num_robots + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14])
+    assert len(obs_space) == 18
+    self.observation_space = spaces.Box(-obs_space, obs_space)
     
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
