@@ -1,5 +1,6 @@
 import time
 import math
+import numpy as np
 
 from datetime import datetime
 from attrdict import AttrDict
@@ -86,3 +87,12 @@ class StepCoopEnv(ResetCoopEnv):
   def GetReward(self, p):
     reward = None
     return reward
+  
+  def GetInfo(self, p):
+    done = False
+    info = None
+    obj_pose_error = self.model_input[-6:]
+    if np.linalg.norm(obj_pose_error) > 0.2:
+      done = True
+      info = "The error is significant enough to reset the training episode."
+    return done, info

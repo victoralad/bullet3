@@ -40,10 +40,10 @@ class CoopEnv(gym.Env):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
     reward = self.step_coop_env.GetReward(p)
-    done = None
-    info = None
+    done, info = self.step_coop_env.GetInfo(p)
     print(reward)
     print(observation)
+    print(info)
     return observation, reward, done, info
 
   def reset(self):
