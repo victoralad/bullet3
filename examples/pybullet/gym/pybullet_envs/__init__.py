@@ -220,6 +220,11 @@ register(id='HumanoidFlagrunHarderBulletEnv-v0',
          entry_point='pybullet_envs.gym_locomotion_envs:HumanoidFlagrunHarderBulletEnv',
          max_episode_steps=1000)
 
+register(id='CoopEnv-v0',
+         entry_point='pybullet_envs.va_gym.va_env_base:CoopEnv',
+         max_episode_steps=1000,
+         reward_threshold=2500.0)
+
 #register(
 #	id='AtlasBulletEnv-v0',
 #	entry_point='pybullet_envs.gym_locomotion_envs:AtlasBulletEnv',
