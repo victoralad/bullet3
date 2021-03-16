@@ -11,7 +11,9 @@ class CustomDDPGPolicy(FeedForwardPolicy):
                                            layer_norm=False,
                                            feature_extraction="mlp")
 
-
-model = DDPG('CnnPolicy', 'CoopEnv-v0', verbose=1)
+print("-----------------aaaaaaaaaaaaaaaaaaaaa---------------------")
+model = DDPG('MlpPolicy', 'CoopEnv-v0', verbose=1)
+print("--------------------bbbbbbbbbbbbbbbbbbbbbb--------------------")
+quit()
 # Train the agent
 model.learn(total_timesteps=1000)
