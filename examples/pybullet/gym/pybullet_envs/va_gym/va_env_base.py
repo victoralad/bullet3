@@ -39,6 +39,8 @@ class CoopEnv(gym.Env):
     self.reset_coop_env = ResetCoopEnv(p)
     self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, p)
 
+    self.num_episodes = 0
+
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
@@ -50,7 +52,8 @@ class CoopEnv(gym.Env):
     return observation, reward, done, info
 
   def reset(self):
-    print("------------- Resetting environment --------------")
+    print("------------- Resetting environment, Episode: {} --------------".format(self.num_episodes))
+    self.num_episodes += 1
     self.reset_coop_env.ResetCoop(p)
     observation = self.reset_coop_env.GetObservation(p)
     return observation  # reward, done, info can't be included

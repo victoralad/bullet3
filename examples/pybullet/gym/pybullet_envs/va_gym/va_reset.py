@@ -13,7 +13,9 @@ class ResetCoopEnv(InitCoopEnv):
     super().__init__(p)
 
   def ResetCoop(self, p):
-    # Initialize the robots to a position where the grippers can grasp the object
+    # Reset the object to the grasp location
+    p.resetBasePositionAndOrientation(self.grasped_object, [0, 0.7, 0.02], p.getQuaternionFromEuler([0, 0, 0]))
+    # Reset the robots to a position where the grippers can grasp the object
     robot_A_reset = [-1.184011299413845, -1.4364158475353175, -1.0899721376131706, 1.0667906797236881, 1.2044237679252714, 
       -1.2280706100083119, 0.988134098323069, 0.0, 0.0, 0.0, 0.003781686634043995, 0.0, 0.014366518891656452, 
       0.0, -0.16958579599715132, 0.1427849400696791, -0.22500275319458551, 0.19728657436618674]

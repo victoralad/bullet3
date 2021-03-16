@@ -15,4 +15,6 @@ env = gym.make('CoopEnv-v0')
 model = DDPG('MlpPolicy', env, verbose=1)
 
 # Train the agent
-model.learn(total_timesteps=100)
+model.learn(total_timesteps=1000)
+print("")
+print("---------- Done training -----------------")
