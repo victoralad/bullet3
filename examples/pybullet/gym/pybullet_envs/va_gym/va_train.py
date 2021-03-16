@@ -11,9 +11,8 @@ from stable_baselines import DDPG
 #                                            layer_norm=False,
 #                                            feature_extraction="mlp")
 
-print("-----------------aaaaaaaaaaaaaaaaaaaaa---------------------")
-model = DDPG('MlpPolicy', 'CoopEnv-v0', verbose=1)
-print("--------------------bbbbbbbbbbbbbbbbbbbbbb--------------------")
-quit()
+env = gym.make('CoopEnv-v0')
+model = DDPG('MlpPolicy', env, verbose=1)
+
 # Train the agent
-model.learn(total_timesteps=1000)
+model.learn(total_timesteps=100)

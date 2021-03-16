@@ -1,3 +1,6 @@
+import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 import gym
 from gym import spaces
 import pybullet as p
@@ -41,12 +44,13 @@ class CoopEnv(gym.Env):
     observation = self.step_coop_env.GetObservation(p)
     reward = self.step_coop_env.GetReward(p)
     done, info = self.step_coop_env.GetInfo(p)
-    print(reward)
-    print(observation)
-    print(info)
+    print("Reward:", reward)
+    print("Observation:", observation)
+    print("Info:", info)
     return observation, reward, done, info
 
   def reset(self):
+    print("------------- Resetting environment --------------")
     self.reset_coop_env.ResetCoop(p)
     observation = self.reset_coop_env.GetObservation(p)
     return observation  # reward, done, info can't be included
