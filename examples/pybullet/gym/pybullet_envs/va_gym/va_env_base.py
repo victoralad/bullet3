@@ -25,12 +25,12 @@ class CoopEnv(gym.Env):
     num_robots = 2
     low_action = [-1.0, -1.0, 0.0, -3.14, -3.14, -3.14]
     high_action = [1.0, 1.0, 1.0, 3.14, 3.14, 3.14]
-    self.action_space = spaces.Box(np.array([low_action]*num_robots), np.array([high_action]*num_robots))
+    self.action_space = spaces.Box(np.array(low_action * num_robots), np.array(high_action * num_robots))
 
     obs_space = np.array([100]*6*num_robots + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14])
     assert len(obs_space) == 18
     self.observation_space = spaces.Box(-obs_space, obs_space)
-    
+
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     self.reset_coop_env = ResetCoopEnv(p)
@@ -54,12 +54,12 @@ class CoopEnv(gym.Env):
   def render(self, mode='human', close=False):
     pass
 
-if __name__ == '__main__':
-  coop = CoopEnv()
-  coop.reset()
-  action = [0.1]*12
-  coop.step(action)
-  while 1:
-      a = 1
-    # coop.reset(p)
-    # coop.step()
+# if __name__ == '__main__':
+#   coop = CoopEnv()
+#   coop.reset()
+#   action = [0.1]*12
+#   coop.step(action)
+#   while 1:
+#       a = 1
+#     # coop.reset(p)
+#     # coop.step()
