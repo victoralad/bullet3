@@ -91,7 +91,7 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error_reward =  -u.T @ u
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
     wrench_reward = -fI.T @ fI
-    reward = obj_pose_error_reward + wrench_reward
+    reward = obj_pose_error_reward / 100 + wrench_reward / 1000
     return reward
   
   def GetInfo(self, p):
