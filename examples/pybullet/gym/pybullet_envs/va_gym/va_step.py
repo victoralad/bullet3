@@ -21,6 +21,9 @@ class StepCoopEnv(ResetCoopEnv):
     self.ft_id = ft_id # F/T sensor joint id.
     self.grasped_object = grasped_object
     self.desired_obj_pose = desired_obj_pose
+    self.constraint_set = False
+    self.ee_constraint = 0
+    self.ee_constraint_reward = 0 # This helps ensure that the grasp constraint is not violated.
 
 
   def apply_action(self, action, p):
@@ -89,10 +92,19 @@ class StepCoopEnv(ResetCoopEnv):
     reward = None
     u = np.array(self.model_input[-6:])
     Q = np.eye(len(u))
-    obj_pose_error_reward =  -u.T @ u
+    obj_pose_error_reward =  -u.T @ (Q @ u)
+
+    if not self.constraint_set:
+      self.ee_constraint = self.GetConstraint(p)
+      self.constraint_set = True
+    curr_ee_constraint = self.GetConstraint(p)
+    self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
+
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
+    R = np.eye(len(fI))
     wrench_reward = -fI.T @ fI
-    reward = obj_pose_error_reward #+ wrench_reward / 1000
+
+    reward = obj_pose_error_reward + self.ee_constraint_reward #+ wrench_reward / 1000
     return reward
   
   def GetInfo(self, p):
@@ -100,7 +112,16 @@ class StepCoopEnv(ResetCoopEnv):
     info = {1: 'Still training'}
     obj_pose_error = self.model_input[-6:]
     norm = np.linalg.norm(obj_pose_error)
-    if norm > 2.0:
+    if norm > 2.0 or self.ee_constraint_reward > 0.05:
       done = True
-      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
+              2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     return done, info
+  
+  def GetConstraint(self, p):
+    robot_A_ee_state = p.getLinkState(self.robot_A, self.kukaEndEffectorIndex)
+    robot_B_ee_state = p.getLinkState(self.robot_B, self.kukaEndEffectorIndex)
+    robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
+    robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
+    ee_constraint = np.linalg.norm(np.array(robot_A_ee_pose) - np.array(robot_B_ee_pose))
+    return ee_constraint
