@@ -18,3 +18,5 @@ model = DDPG('MlpPolicy', env, verbose=1)
 model.learn(total_timesteps=1000)
 print("")
 print("---------- Done training -----------------")
+
+model.save("ddpg_coop_manip")

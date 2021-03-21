@@ -75,8 +75,8 @@ class StepCoopEnv(ResetCoopEnv):
       obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
 
     # Get Wrench measurements at wrist
-    _, _, ft_A, _ = p.getJointState(self.robot_A, self.ft_id)
-    _, _, ft_B, _ = p.getJointState(self.robot_B, self.ft_id)
+    _, _, ft_A, self.applied_ft_A = p.getJointState(self.robot_A, self.ft_id)
+    _, _, ft_B, self.applied_ft_B = p.getJointState(self.robot_B, self.ft_id)
     wrench_A = list(ft_A)
     wrench_B = list(ft_B)
 
@@ -91,7 +91,7 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error_reward =  -u.T @ u
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
     wrench_reward = -fI.T @ fI
-    reward = obj_pose_error_reward / 100 + wrench_reward / 1000
+    reward = obj_pose_error_reward #+ wrench_reward / 1000
     return reward
   
   def GetInfo(self, p):
