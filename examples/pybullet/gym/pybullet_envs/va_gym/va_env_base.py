@@ -34,10 +34,12 @@ class CoopEnv(gym.Env):
     assert len(obs_space) == 18
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
+    self.desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
+
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
-    self.reset_coop_env = ResetCoopEnv(p)
-    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, p)
+    self.reset_coop_env = ResetCoopEnv(self.desired_obj_pose, p)
+    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, self.desired_obj_pose, p)
 
     self.num_episodes = 0
 

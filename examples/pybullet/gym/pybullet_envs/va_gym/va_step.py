@@ -10,7 +10,7 @@ from va_reset import ResetCoopEnv
 
 class StepCoopEnv(ResetCoopEnv):
 
-  def __init__(self, robots, grasped_object, ft_id, p):
+  def __init__(self, robots, grasped_object, ft_id, desired_obj_pose, p):
     self.robot_A = robots[0]
     self.robot_B = robots[1]
     self.kukaEndEffectorIndex = 7
@@ -20,6 +20,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.useSimulation = 1
     self.ft_id = ft_id # F/T sensor joint id.
     self.grasped_object = grasped_object
+    self.desired_obj_pose = desired_obj_pose
+
 
   def apply_action(self, action, p):
     assert len(action) == 12
@@ -66,13 +68,12 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error = [None] * 6
     wrench_A = [None] * 6
     wrench_B = [None] * 6
-    desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
 
     # Get object pose
     obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
     for i in range(len(obj_pose)):
-      obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
+      obj_pose_error[i] = self.desired_obj_pose[i] - obj_pose[i]
 
     # Get Wrench measurements at wrist
     _, _, ft_A, self.applied_ft_A = p.getJointState(self.robot_A, self.ft_id)

@@ -9,8 +9,9 @@ from va_init import InitCoopEnv
 
 class ResetCoopEnv(InitCoopEnv):
 
-  def __init__(self, p):
+  def __init__(self, desired_obj_pose, p):
     super().__init__(p)
+    self.desired_obj_pose = desired_obj_pose
 
   def ResetCoop(self, p):
     # Reset the object to the grasp location
@@ -106,13 +107,12 @@ class ResetCoopEnv(InitCoopEnv):
     obj_pose_error = [None] * 6
     wrench_A = [None] * 6
     wrench_B = [None] * 6
-    desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
 
     # Get object pose
     obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
     for i in range(len(obj_pose)):
-      obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
+      obj_pose_error[i] = self.desired_obj_pose[i] - obj_pose[i]
 
     # Get Wrench measurements at wrist
     _, _, ft_A, _ = p.getJointState(self.kukaId_A, self.ft_id)
