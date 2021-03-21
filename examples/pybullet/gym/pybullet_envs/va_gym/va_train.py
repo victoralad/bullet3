@@ -1,18 +1,15 @@
 import gym
+import numpy as np
 
-from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG
-
-# # Custom MLP policy of two layers of size 16 each
-# class CustomDDPGPolicy(FeedForwardPolicy):
-#     def __init__(self, *args, **kwargs):
-#         super(CustomDDPGPolicy, self).__init__(*args, **kwargs,
-#                                            layers=[16, 16],
-#                                            layer_norm=False,
-#                                            feature_extraction="mlp")
+from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 
 env = gym.make('CoopEnv-v0')
-model = DDPG('MlpPolicy', env, verbose=1)
+
+n_actions = env.action_space.shape[-1]
+action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
+
+model = DDPG('MlpPolicy', env, verbose=1, action_noise=action_noise)
 
 # Train the agent
 model.learn(total_timesteps=1000)
