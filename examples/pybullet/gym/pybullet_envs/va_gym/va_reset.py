@@ -31,8 +31,8 @@ class ResetCoopEnv(InitCoopEnv):
 
     # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
     for i in range(20):
-      self.gripper(self.kukaId_A, self.joints_A, 0.0, p)
-      self.gripper(self.kukaId_B, self.joints_B, 0.0, p)
+      self.gripper(self.kukaId_A, self.joints_A, 0.02, p)
+      self.gripper(self.kukaId_B, self.joints_B, 0.02, p)
       p.stepSimulation()
     
     # Move the object away from the floor after grasping it
@@ -40,7 +40,7 @@ class ResetCoopEnv(InitCoopEnv):
     joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
     joint_pos_B = [-1.0486248920719832, -1.1473636221157095, -1.1177883364427017, 1.024559282045054, 0.9666073630561682, -1.4632516957457011, 1.208288290582244]
     
-    for i in range(2000):
+    for i in range(5000):
       if (self.useSimulation):
         for i in range(self.numJoints):
           p.setJointMotorControl2(bodyIndex=self.kukaId_A,

@@ -46,7 +46,7 @@ class StepCoopEnv(ResetCoopEnv):
                                           jointDamping=self.jd)
     
     if (self.useSimulation):
-      for i in range(2000):
+      for i in range(200):
         for i in range(self.numJoints):
           p.setJointMotorControl2(bodyIndex=self.robot_A,
                                   jointIndex=i,
@@ -102,12 +102,13 @@ class StepCoopEnv(ResetCoopEnv):
       self.constraint_set = True
     curr_ee_constraint = self.GetConstraint(p)
     self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
+    ee_constr_reward = -self.ee_constraint_reward
 
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
     R = np.eye(len(fI))
     wrench_reward = -fI.T @ fI
 
-    reward = obj_pose_error_reward + self.ee_constraint_reward #+ wrench_reward / 1000
+    reward = obj_pose_error_reward + ee_constr_reward #+ wrench_reward / 1000
     return reward
   
   def GetInfo(self, p):
