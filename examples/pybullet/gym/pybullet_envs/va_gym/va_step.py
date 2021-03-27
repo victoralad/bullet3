@@ -46,25 +46,28 @@ class StepCoopEnv(ResetCoopEnv):
                                           jointDamping=self.jd)
     
     if (self.useSimulation):
-      for i in range(self.numJoints):
-        p.setJointMotorControl2(bodyIndex=self.robot_A,
-                                jointIndex=i,
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=joint_pos_A[i],
-                                targetVelocity=0,
-                                force=500,
-                                positionGain=0.1,
-                                velocityGain=0.5)
+      for i in range(2000):
+        for i in range(self.numJoints):
+          p.setJointMotorControl2(bodyIndex=self.robot_A,
+                                  jointIndex=i,
+                                  controlMode=p.POSITION_CONTROL,
+                                  targetPosition=joint_pos_A[i],
+                                  targetVelocity=0,
+                                  force=100,
+                                  positionGain=0.1,
+                                  velocityGain=0.5,
+                                  maxVelocity=0.01)
 
-        p.setJointMotorControl2(bodyIndex=self.robot_B,
-                                jointIndex=i,
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=joint_pos_B[i],
-                                targetVelocity=0,
-                                force=500,
-                                positionGain=0.1,
-                                velocityGain=0.5)
-    p.stepSimulation()
+          p.setJointMotorControl2(bodyIndex=self.robot_B,
+                                  jointIndex=i,
+                                  controlMode=p.POSITION_CONTROL,
+                                  targetPosition=joint_pos_B[i],
+                                  targetVelocity=0,
+                                  force=100,
+                                  positionGain=0.1,
+                                  velocityGain=0.5,
+                                  maxVelocity=0.01)
+        p.stepSimulation()
   
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
