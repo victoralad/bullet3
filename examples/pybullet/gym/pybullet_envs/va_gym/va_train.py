@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+import pickle
 
 from stable_baselines import DDPG
 from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
@@ -13,8 +14,11 @@ model = DDPG('MlpPolicy', env, verbose=1, action_noise=action_noise)
 # model = DDPG('MlpPolicy', env, verbose=1)
 
 # Train the agent
-model.learn(total_timesteps=2000)
+model.learn(total_timesteps=100)
 print("")
 print("---------- Done training -----------------")
 
 model.save("ddpg_coop_manip")
+
+with open('data/reward.data', 'wb') as filehandle:
+    pickle.dump(env.reward_data, filehandle)

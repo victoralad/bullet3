@@ -43,11 +43,17 @@ class CoopEnv(gym.Env):
 
     self.num_episodes = 0
 
+    self.reward_data = [[0.0], [0.0]]
+    self.sum_reward = 0.0
+    self.num_steps = 1
+
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
     reward = self.step_coop_env.GetReward(p)
     done, info = self.step_coop_env.GetInfo(p)
+    self.sum_reward += reward
+    self.num_steps += 1
     print("---------------------------- Step ----------------------------")
     print("Reward:", reward)
     print("")
@@ -58,7 +64,13 @@ class CoopEnv(gym.Env):
 
   def reset(self):
     print("------------- Resetting environment, Episode: {} --------------".format(self.num_episodes))
-    self.num_episodes += 1
+    self.num_episodes += 1.0
+    avg_reward = self.sum_reward / self.num_steps
+    self.reward_data[0] += [self.num_episodes]
+    self.reward_data[1] += [avg_reward]
+    self.sum_reward = 0.0
+    self.num_steps = 0.0
+    
     self.reset_coop_env.ResetCoop(p)
     observation = self.reset_coop_env.GetObservation(p)
     return observation  # reward, done, info can't be included
