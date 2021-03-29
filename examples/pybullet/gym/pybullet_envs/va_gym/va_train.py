@@ -14,7 +14,7 @@ model = DDPG('MlpPolicy', env, verbose=1, action_noise=action_noise)
 # model = DDPG('MlpPolicy', env, verbose=1)
 
 # Train the agent
-model.learn(total_timesteps=100)
+model.learn(total_timesteps=3000)
 print("")
 print("---------- Done training -----------------")
 
