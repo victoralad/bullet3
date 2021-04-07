@@ -42,6 +42,7 @@ class CoopEnv(gym.Env):
     self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, self.desired_obj_pose, p)
 
     self.num_episodes = 0
+    self.time_step = 0
 
     self.reward_data = [[0.0], [0.0]]
     self.sum_reward = 0.0
@@ -54,7 +55,8 @@ class CoopEnv(gym.Env):
     done, info = self.step_coop_env.GetInfo(p)
     self.sum_reward += reward
     self.num_steps += 1
-    print("---------------------------- Step ----------------------------")
+    self.time_step +=1
+    print("---------------------------- Step {} ----------------------------".format(self.time_step))
     print("Reward:", reward)
     print("")
     print("Observation:", observation)
