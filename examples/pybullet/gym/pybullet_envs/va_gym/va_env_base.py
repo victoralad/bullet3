@@ -26,8 +26,8 @@ class CoopEnv(gym.Env):
     # Define action and observation space
     # They must be gym.spaces objects
     num_robots = 2
-    low_action = np.array([-1.0, -1.0, 0.0, -3.14, -3.14, -3.14] * num_robots) * 0.5
-    high_action = np.array([1.0, 1.0, 1.0, 3.14, 3.14, 3.14] * num_robots) * 0.5
+    low_action = np.array([-1.0, -1.0, 0.0, -3.14, -3.14, -3.14] * num_robots)
+    high_action = np.array([1.0, 1.0, 1.0, 3.14, 3.14, 3.14] * num_robots)
     self.action_space = spaces.Box(low_action, high_action)
 
     obs_space = np.array([100]*6*num_robots + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14])
@@ -57,9 +57,11 @@ class CoopEnv(gym.Env):
     self.num_steps += 1
     self.time_step +=1
     print("---------------------------- Step {} ----------------------------".format(self.time_step))
-    print("Reward:", reward)
-    print("")
     print("Observation:", observation)
+    print("")
+    print("Action:", action)
+    print("")
+    print("Reward:", reward)
     print("")
     print("Info:", info)
     return observation, reward, done, info

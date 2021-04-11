@@ -24,6 +24,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.constraint_set = False
     self.ee_constraint = 0
     self.ee_constraint_reward = 0 # This helps ensure that the grasp constraint is not violated.
+    self.count = 0
 
 
   def apply_action(self, action, p):
@@ -96,21 +97,25 @@ class StepCoopEnv(ResetCoopEnv):
   def GetReward(self, p):
     reward = None
     u = np.array(self.model_input[-6:])
-    Q = np.eye(len(u))
+    Q = 1000*np.eye(len(u))
     # Q[4][4] = 10*Q[4][4]
     # Q[2][2] = 10*Q[2][2]
-    obj_pose_error_reward =  -u.T @ (Q @ u)
+    obj_pose_error_reward =  -1 * u.T @ (Q @ u)
 
     if not self.constraint_set:
       self.ee_constraint = self.GetConstraint(p)
       self.constraint_set = True
     curr_ee_constraint = self.GetConstraint(p)
     self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
-    ee_constr_reward = -10*self.ee_constraint_reward
+    ee_constr_reward = -self.ee_constraint_reward
+    print("ee_constraint reward:", curr_ee_constraint, self.ee_constraint, self.ee_constraint_reward)
+    if self.ee_constraint_reward > 0.05:
+      quit()
+    self.count += 2
 
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
     R = np.eye(len(fI))
-    wrench_reward = -fI.T @ fI
+    wrench_reward = -1 * fI.T @ fI
 
     reward = obj_pose_error_reward + ee_constr_reward #+ wrench_reward / 1000
     return reward
@@ -120,7 +125,7 @@ class StepCoopEnv(ResetCoopEnv):
     info = {1: 'Still training'}
     obj_pose_error = self.model_input[-6:]
     norm = np.linalg.norm(obj_pose_error)
-    if norm > 2.0 or self.ee_constraint_reward > 0.01:
+    if norm > 2.0 or self.ee_constraint_reward > 0.05:
       done = True
       info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
               2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
@@ -131,5 +136,12 @@ class StepCoopEnv(ResetCoopEnv):
     robot_B_ee_state = p.getLinkState(self.robot_B, self.kukaEndEffectorIndex)
     robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
     robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
-    ee_constraint = np.linalg.norm(np.array(robot_A_ee_pose) - np.array(robot_B_ee_pose))
-    return ee_constraint
+    ee_constraint = np.array(robot_A_ee_pose) - np.array(robot_B_ee_pose)
+    print("robot A", np.array(robot_A_ee_pose))
+    print("robot B", np.array(robot_B_ee_pose))
+    # subroutine to handle situations where joint angles cross PI or -PI
+    for i in range(3):
+      ee_constraint[i+3] = math.fmod(ee_constraint[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
+    norm_ee_constraint = np.linalg.norm(ee_constraint)
+    return norm_ee_constraint
+
