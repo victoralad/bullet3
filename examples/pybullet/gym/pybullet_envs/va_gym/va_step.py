@@ -24,7 +24,6 @@ class StepCoopEnv(ResetCoopEnv):
     self.constraint_set = False
     self.ee_constraint = 0
     self.ee_constraint_reward = 0 # This helps ensure that the grasp constraint is not violated.
-    self.count = 0
 
 
   def apply_action(self, action, p):
@@ -108,10 +107,6 @@ class StepCoopEnv(ResetCoopEnv):
     curr_ee_constraint = self.GetConstraint(p)
     self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
     ee_constr_reward = -self.ee_constraint_reward
-    print("ee_constraint reward:", curr_ee_constraint, self.ee_constraint, self.ee_constraint_reward)
-    if self.ee_constraint_reward > 0.05:
-      quit()
-    self.count += 2
 
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
     R = np.eye(len(fI))
@@ -137,8 +132,6 @@ class StepCoopEnv(ResetCoopEnv):
     robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
     robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
     ee_constraint = np.array(robot_A_ee_pose) - np.array(robot_B_ee_pose)
-    print("robot A", np.array(robot_A_ee_pose))
-    print("robot B", np.array(robot_B_ee_pose))
     # subroutine to handle situations where joint angles cross PI or -PI
     for i in range(3):
       ee_constraint[i+3] = math.fmod(ee_constraint[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
