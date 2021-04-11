@@ -88,17 +88,17 @@ class StepCoopEnv(ResetCoopEnv):
     wrench_B = list(ft_B)
 
     self.model_input = wrench_A + wrench_B + obj_pose_error
-    # normed_wrench = self.model_input[:12] / np.linalg.norm(self.model_input[:12])
-    # self.model_input[:12] = normed_wrench
+    normed_wrench = self.model_input[:12] / np.linalg.norm(self.model_input[:12])
+    self.model_input[:12] = normed_wrench
     assert len(self.model_input) == 18
     return self.model_input
   
   def GetReward(self, p):
     reward = None
     u = np.array(self.model_input[-6:])
-    Q = 1000*np.eye(len(u))
-    # Q[4][4] = 10*Q[4][4]
-    # Q[2][2] = 10*Q[2][2]
+    Q = 100*np.eye(len(u))
+    # Q[4][4] = 1000*Q[4][4]
+    # Q[2][2] = 1000*Q[2][2]
     obj_pose_error_reward =  -1 * u.T @ (Q @ u)
 
     if not self.constraint_set:
@@ -110,9 +110,9 @@ class StepCoopEnv(ResetCoopEnv):
 
     fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
     R = np.eye(len(fI))
-    wrench_reward = -1 * fI.T @ fI
+    wrench_reward = -1 * fI.T @ (R @ fI)
 
-    reward = obj_pose_error_reward + ee_constr_reward #+ wrench_reward / 1000
+    reward = obj_pose_error_reward + ee_constr_reward + wrench_reward
     return reward
   
   def GetInfo(self, p):
