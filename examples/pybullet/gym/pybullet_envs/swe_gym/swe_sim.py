@@ -51,10 +51,12 @@ class ObjDyn:
     
     self.model_input = None
 
-    initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+    # initPose = [0, 0, -0.5 * math.pi, 0.5 * math.pi, math.pi, -math.pi * 0.5 * 0.66, 0]
+    initPose_A = [0, 0, -0.5 * math.pi, 0.5 * math.pi, math.pi, math.pi * 0.5, 0.8 * math.pi]
+    initPose_B = [0, 0, -0.5 * math.pi, 0.5 * math.pi, math.pi, math.pi * 0.5, 0.7 * math.pi]
     for i in range(self.numJoints):
-      p.resetJointState(self.kukaId_A, i, initPose[i])
-      p.resetJointState(self.kukaId_B, i, initPose[i])
+      p.resetJointState(self.kukaId_A, i, initPose_A[i])
+      p.resetJointState(self.kukaId_B, i, initPose_B[i])
 
     self.prevPose_A = [0, 0, 0]
     self.prevPose_B = [0, 0, 0]
@@ -322,7 +324,7 @@ if __name__ == '__main__':
   iiwa = ObjDyn()
   model_input = None
   while 1:
-    iiwa.Run()
+    # iiwa.Run()
     model_input = iiwa.model_input
     # print(model_input)
 # p.disconnect()
