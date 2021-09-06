@@ -128,8 +128,8 @@ class ObjDyn:
                                 targetPosition=jointPoses_A[i],
                                 targetVelocity=0,
                                 force=500,
-                                positionGain=0.1,
-                                velocityGain=0.5)
+                                positionGain=0.5,
+                                velocityGain=0.9)
 
         p.setJointMotorControl2(bodyIndex=self.kukaId_B,
                                 jointIndex=i,
@@ -137,8 +137,8 @@ class ObjDyn:
                                 targetPosition=jointPoses_B[i],
                                 targetVelocity=0,
                                 force=500,
-                                positionGain=0.1,
-                                velocityGain=0.5)
+                                positionGain=0.5,
+                                velocityGain=0.9)
 
     else:
       #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
@@ -146,28 +146,28 @@ class ObjDyn:
         p.resetJointState(self.kukaId_A, i, jointPoses_A[i])
         p.resetJointState(self.kukaId_B, i, jointPoses_B[i])
     
-    # ----------------------------- Get model input ----------------------------------
-    obj_pose_error = [None] * 6
-    wrench_A = [None] * 6
-    wrench_B = [None] * 6
-    desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
+    # # ----------------------------- Get model input ----------------------------------
+    # obj_pose_error = [None] * 6
+    # wrench_A = [None] * 6
+    # wrench_B = [None] * 6
+    # desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
 
-    # Get object pose
-    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
-    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
-    for i in range(len(obj_pose)):
-      obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
+    # # Get object pose
+    # obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
+    # obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    # for i in range(len(obj_pose)):
+    #   obj_pose_error[i] = desired_obj_pose[i] - obj_pose[i]
 
-    # Get Wrench measurements at wrist
-    _, _, ft_A, _ = p.getJointState(self.kukaId_A, self.ft_id)
-    _, _, ft_B, _ = p.getJointState(self.kukaId_B, self.ft_id)
-    wrench_A = list(ft_A)
-    wrench_B = list(ft_B)
+    # # Get Wrench measurements at wrist
+    # _, _, ft_A, _ = p.getJointState(self.kukaId_A, self.ft_id)
+    # _, _, ft_B, _ = p.getJointState(self.kukaId_B, self.ft_id)
+    # wrench_A = list(ft_A)
+    # wrench_B = list(ft_B)
 
-    self.model_input = wrench_A + wrench_B + obj_pose_error
-    assert len(self.model_input) == 18
+    # self.model_input = wrench_A + wrench_B + obj_pose_error
+    # assert len(self.model_input) == 18
 
-    # ----------------------------------------------------------------------------------
+    # # ----------------------------------------------------------------------------------
     ls_A = p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
     ls_B = p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
 
@@ -324,7 +324,7 @@ if __name__ == '__main__':
   iiwa = ObjDyn()
   model_input = None
   while 1:
-    # iiwa.Run()
+    iiwa.Run()
     model_input = iiwa.model_input
     # print(model_input)
 # p.disconnect()
