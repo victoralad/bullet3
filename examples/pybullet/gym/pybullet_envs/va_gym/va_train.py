@@ -16,7 +16,7 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 model = PPO2('MlpPolicy', env, verbose=1)
 
 # Train the agent
-model.learn(total_timesteps=1000)
+model.learn(total_timesteps=2000)
 print("")
 print("---------- Done training -----------------")
 
