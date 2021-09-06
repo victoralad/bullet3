@@ -37,12 +37,12 @@ class ObjDyn:
     p.enableJointForceTorqueSensor(self.kukaId_B, self.ft_id, 1)
 
 
-    # p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
-    # robots = [self.kukaId_A, self.kukaId_B]
-    # for robot in robots:
-    #   p.setJointMotorControl2(robot, 15, p.VELOCITY_CONTROL, force=0.0)
-    #   p.setJointMotorControl2(robot, 17, p.VELOCITY_CONTROL, force=0.0)
-    #   self.SetGripperConstraint(robot)
+    p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
+    robots = [self.kukaId_A, self.kukaId_B]
+    for robot in robots:
+      p.setJointMotorControl2(robot, 9, p.VELOCITY_CONTROL, force=0.0)
+      p.setJointMotorControl2(robot, 10, p.VELOCITY_CONTROL, force=0.0)
+      self.SetGripperConstraint(robot)
 
     self.t = 0.
     self.useSimulation = 1
@@ -253,71 +253,47 @@ class ObjDyn:
         mode: PyBullet control mode
         '''
 
-        gripper_main_control_joint_name = "robotiq_85_left_knuckle_joint"
-        mimic_joint_name = ["robotiq_85_right_knuckle_joint",
-                            "robotiq_85_left_inner_knuckle_joint",
-                            "robotiq_85_right_inner_knuckle_joint",
-                            "robotiq_85_left_finger_tip_joint",
-                            "robotiq_85_right_finger_tip_joint"]
-        mimic_multiplier = [1, 1, 1, -1, -1]
+        self.finger_target = 0
+        self.gripper_height = 0.2
+        for i in [9,10]:
+          p.setJointMotorControl2(kukaId, i, mode, self.finger_target, force= 10)
 
-        # gripper control
-        gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
+        # gripper_main_control_joint_name = "robotiq_85_left_knuckle_joint"
+        # mimic_joint_name = ["robotiq_85_right_knuckle_joint",
+        #                     "robotiq_85_left_inner_knuckle_joint",
+        #                     "robotiq_85_right_inner_knuckle_joint",
+        #                     "robotiq_85_left_finger_tip_joint",
+        #                     "robotiq_85_right_finger_tip_joint"]
+        # mimic_multiplier = [1, 1, 1, -1, -1]
 
-        p.setJointMotorControl2(kukaId,
-                                joints[gripper_main_control_joint_name].id,
-                                p.POSITION_CONTROL,
-                                targetPosition=gripper_opening_angle,
-                                force=joints[gripper_main_control_joint_name].maxForce,
-                                maxVelocity=joints[gripper_main_control_joint_name].maxVelocity)
+        # # gripper control
+        # gripper_opening_angle = 0.715 - math.asin((gripper_opening_length - 0.010) / 0.1143)    # angle calculation
+
+        # p.setJointMotorControl2(kukaId,
+        #                         joints[gripper_main_control_joint_name].id,
+        #                         p.POSITION_CONTROL,
+        #                         targetPosition=gripper_opening_angle,
+        #                         force=joints[gripper_main_control_joint_name].maxForce,
+        #                         maxVelocity=joints[gripper_main_control_joint_name].maxVelocity)
         
-        for i in range(len(mimic_joint_name)):
-          joint = joints[mimic_joint_name[i]]
-          p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
-                                  targetPosition=gripper_opening_angle * mimic_multiplier[i],
-                                  force=joint.maxForce,
-                                  maxVelocity=joint.maxVelocity)
+        # for i in range(len(mimic_joint_name)):
+        #   joint = joints[mimic_joint_name[i]]
+        #   p.setJointMotorControl2(kukaId, joint.id, p.POSITION_CONTROL,
+        #                           targetPosition=gripper_opening_angle * mimic_multiplier[i],
+        #                           force=joint.maxForce,
+        #                           maxVelocity=joint.maxVelocity)
   
   def SetGripperConstraint(self, kukaId):
-    a = p.createConstraint(kukaId,
-                  10,
-                  kukaId,
-                  15,
-                  jointType=p.JOINT_FIXED,
-                  jointAxis=[0, 0, 1],
-                  parentFramePosition=[0, 0, 0],
-                  childFramePosition=[0, 0, 0])
-    p.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=50)
-
-    b = p.createConstraint(kukaId,
-                  12,
-                  kukaId,
-                  17,
-                  jointType=p.JOINT_FIXED,
-                  jointAxis=[0, 0, 1],
-                  parentFramePosition=[0, 0, 0],
-                  childFramePosition=[0, 0, 0])
-    p.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=50)
-
+    #create a constraint to keep the fingers centered
     c = p.createConstraint(kukaId,
-                  14,
-                  kukaId,
-                  15,
-                  jointType=p.JOINT_FIXED,
-                  jointAxis=[0, 0, 1],
-                  parentFramePosition=[0, 0, 0],
-                  childFramePosition=[0, 0, 0])
+                       9,
+                       kukaId,
+                       10,
+                       jointType=p.JOINT_GEAR,
+                       jointAxis=[1, 0, 0],
+                       parentFramePosition=[0, 0, 0],
+                       childFramePosition=[0, 0, 0])
     p.changeConstraint(c, gearRatio=-1, erp=0.1, maxForce=50)
-
-    d = p.createConstraint(kukaId,
-                  16,
-                  kukaId,
-                  17,
-                  jointType=p.JOINT_FIXED,
-                  jointAxis=[0, 0, 1],
-                  parentFramePosition=[0, 0, 0],
-                  childFramePosition=[0, 0, 0])
-    p.changeConstraint(d, gearRatio=-1, erp=0.1, maxForce=50)
     
 
 if __name__ == '__main__':
