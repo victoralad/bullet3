@@ -192,9 +192,9 @@ class ObjDyn:
       joint_pos_A[i] = joint_data_A[0]
       joint_data_B = p.getJointState(self.kukaId_B, i)
       joint_pos_B[i] = joint_data_B[0]
-    print("-------------------")
-    print(joint_pos_A)
-    print(joint_pos_B)
+    # print("-------------------")
+    # print(joint_pos_A)
+    # print(joint_pos_B)
 
     # ------------------------------- Get Keyboard events -----------------------------
     keys = p.getKeyboardEvents()
@@ -239,7 +239,7 @@ class ObjDyn:
         self.delta_z_A -= delta_value
         self.delta_z_B -= delta_value
 
-  def gripper(self, kukaId, joints, gripper_opening_length, mode=p.POSITION_CONTROL):
+  def gripper(self, kukaId, joints, finger_target, mode=p.POSITION_CONTROL):
         '''
         Gripper commands need to be mirrored to simulate behavior of the actual
         UR5. Converts one command input to 6 joint positions, used for the
@@ -252,11 +252,8 @@ class ObjDyn:
         cmd: 1x1 array of floating point position commands in [-0.8, 0]
         mode: PyBullet control mode
         '''
-
-        self.finger_target = 0
-        self.gripper_height = 0.2
         for i in [9,10]:
-          p.setJointMotorControl2(kukaId, i, mode, self.finger_target, force= 10)
+          p.setJointMotorControl2(kukaId, i, mode, finger_target, force= 10)
 
         # gripper_main_control_joint_name = "robotiq_85_left_knuckle_joint"
         # mimic_joint_name = ["robotiq_85_right_knuckle_joint",
