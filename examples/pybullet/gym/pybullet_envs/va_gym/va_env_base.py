@@ -34,7 +34,7 @@ class CoopEnv(gym.Env):
     assert len(obs_space) == 18
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
-    self.desired_obj_pose = [0.0, 0.3, 0.4, 0.0, 0.0, 0.0]
+    self.desired_obj_pose = [0.0, 0.0, 0.4, 0.0, 0.0, 0.0]
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
