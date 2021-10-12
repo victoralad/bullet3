@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<robot name="grasp_object">
+  <!-- for gazebo -->
+  <link name="object">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" />
+      <mass value="1" />
+      <inertia ixx="0.00026" ixy="0.0" ixz="0.0" iyy="0.05346" iyz="0.0" izz="0.05346" />
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <box size= "0.8 0.04 0.04"/>
+      </geometry>
+      <material name="Blue">
+        <color rgba="0.2 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0"/>
+      <geometry>
+          <box size= "0.8 0.04 0.04"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="object">
+    <material>Gazebo/White</material>
+    <static>false</static>
+    <!-- <gravity>0</gravity> -->
+    <!-- <turnGravityOff>true</turnGravityOff> -->
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <!-- <kp>60.0</kp> 
+    <kd>10</kd> -->
+  </gazebo>
+</robot>
