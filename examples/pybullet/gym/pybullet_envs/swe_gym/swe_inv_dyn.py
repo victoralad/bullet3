@@ -20,7 +20,7 @@ class ObjDyn:
     self.kukaId = p.loadURDF("franka_panda/panda.urdf", [-0.3, 0, 0], useFixedBase=True)
     p.resetBasePositionAndOrientation(self.kukaId, [0, 0, 0], [0, 0, 0, 1])
     p.setGravity(0, 0, -9.81)
-    self.kukaEndEffectorIndex = 7
+    self.kukaEndEffectorIndex = 8
     self.totalNumJoints = p.getNumJoints(self.kukaId)
     # joint damping coefficents
     self.jd = [0.01] * self.totalNumJoints
@@ -39,11 +39,10 @@ class ObjDyn:
     self.useRealTimeSimulation = 0
     p.setRealTimeSimulation(self.useRealTimeSimulation)
 
-    self.Kp = 10.5 * np.array([5, 5, 5, 2, 2, 2])
-    self.Kv = 10.2 * np.array([0.5, 0.5, 0.5, 0.2, 0.2, 0.2])
+    self.Kp = 5.5 * np.array([5, 5, 5, 2, 2, 2])
+    self.Kv = 5.2 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
 
-    self.prevPose = [0, 0, 0]
-    self.prevPose1 = [0, 0, 0]
+    self.prevPose = [-0.5, 0.0, 0.4]
     self.hasPrevPose = 0
 
     
@@ -76,9 +75,10 @@ class ObjDyn:
     if (self.useSimulation and self.useRealTimeSimulation == 0):
       p.stepSimulation()
 
-    desired_ee_pos = [-0.5, 0.0, 0.4] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
+    desired_ee_pos = [0.0, -0.389, 0.369] #[0.2 * math.cos(self.t), 0.2 * math.sin(self.t), 0.4]
     #end effector points down, not up (when orientation is used)
-    desired_orn_euler = [0.1, -math.pi / 2, 0.1]
+    # desired_orn_euler = [math.pi / 2.5, math.pi / 2.5, 0.1]
+    desired_orn_euler = [0.95*math.pi, -0.01, -0.157]
 
     # State of end effector.
     ee_state = p.getLinkState(self.kukaId, self.kukaEndEffectorIndex, computeLinkVelocity=1, computeForwardKinematics=1)
@@ -98,18 +98,22 @@ class ObjDyn:
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     ee_pose = np.concatenate((np.array(frame_pos), np.array(p.getEulerFromQuaternion(frame_rot))))
     desired_ee_pose = np.concatenate((np.array(desired_ee_pos), np.array(desired_orn_euler)))
+    # desired_ee_pose = np.concatenate((np.array(desired_ee_pos), np.array(p.getEulerFromQuaternion(link_rot))))
     ee_vel = np.concatenate((np.array(link_vt), np.array(link_vr)))
     desired_ee_vel = np.zeros(len(ee_vel))
 
     ee_pose_error = desired_ee_pose - ee_pose
+    for i in range(3, len(ee_pose_error)):
+      ee_pose_error[i] = math.fmod(ee_pose_error[i] + math.pi + 2*math.pi, 2*math.pi) - math.pi
     ee_vel_error = desired_ee_vel - ee_vel
 
     desired_ee_wrench = self.Kp * ee_pose_error + self.Kv * ee_vel_error
 
     nonlinear_forces = p.calculateInverseDynamics(self.kukaId, joints_pos, joints_vel, zero_vec)
     desired_joint_torques = jac.T.dot(desired_ee_wrench) + np.array(nonlinear_forces)
+    # desired_joint_torques = np.array(nonlinear_forces)
 
-    print("-----------------------")
+    print("------------Pose error---------------")
     # print(ee_pose_error)
     for i in range(6):
       print(ee_pose_error[i])
@@ -130,11 +134,9 @@ class ObjDyn:
     if (self.hasPrevPose):
       #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
       #use 0 for no-removal
-      trailDuration = 15
-      p.addUserDebugLine(self.prevPose, desired_ee_pos, [0, 0, 0.3], 1, trailDuration)
-      p.addUserDebugLine(self.prevPose1, ee_state[4], [1, 0, 0], 1, trailDuration)
+      trailDuration = 5
+      # p.addUserDebugLine(self.prevPose, desired_ee_pos, desired_ee_pos, 1, trailDuration)
     self.prevPose = desired_ee_pos
-    self.prevPose1 = ee_state[4]
     self.hasPrevPose = 1
 
     keys = p.getKeyboardEvents()
