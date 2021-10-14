@@ -13,7 +13,7 @@ class StepCoopEnv(ResetCoopEnv):
   def __init__(self, robots, grasped_object, ft_id, desired_obj_pose, p):
     self.robot_A = robots[0]
     self.robot_B = robots[1]
-    self.kukaEndEffectorIndex = 7
+    self.kukaEndEffectorIndex = 11
     self.totalNumJoints = p.getNumJoints(self.robot_A)
     self.numJoints = 7 # number of joints for just the arm
     self.jd = [0.01] * self.totalNumJoints
@@ -28,45 +28,23 @@ class StepCoopEnv(ResetCoopEnv):
 
   def apply_action(self, action, p):
     assert len(action) == 12
-    desired_ee_pos_A = action[:3]
-    desired_ee_orn_A = p.getQuaternionFromEuler(action[3:6])
-    desired_ee_pos_B = action[6:9]
-    desired_ee_orn_B = p.getQuaternionFromEuler(action[9:])
-
-    joint_pos_A = p.calculateInverseKinematics(self.robot_A,
-                                          self.kukaEndEffectorIndex,
-                                          desired_ee_pos_A,
-                                          desired_ee_orn_A,
-                                          jointDamping=self.jd)
-    
-    joint_pos_B = p.calculateInverseKinematics(self.robot_B,
-                                          self.kukaEndEffectorIndex,
-                                          desired_ee_pos_B,
-                                          desired_ee_orn_B,
-                                          jointDamping=self.jd)
+    computed_joint_torques_robot_A = action[:6]
+    computed_joint_torques_robot_B = self.GetJointTorques(self.robot_B, p)
     
     if (self.useSimulation):
       for i in range(200):
         for i in range(self.numJoints):
+          p.setJointMotorControl2(self.kukaId, i, p.VELOCITY_CONTROL, force=0.5)
           p.setJointMotorControl2(bodyIndex=self.robot_A,
-                                  jointIndex=i,
-                                  controlMode=p.POSITION_CONTROL,
-                                  targetPosition=joint_pos_A[i],
-                                  targetVelocity=0,
-                                  force=100,
-                                  positionGain=0.1,
-                                  velocityGain=0.5,
-                                  maxVelocity=0.01)
+                                jointIndex=i,
+                                controlMode=p.TORQUE_CONTROL,
+                                force=computed_joint_torques_robot_A[i])
 
+          p.setJointMotorControl2(self.kukaId, i, p.VELOCITY_CONTROL, force=0.5)
           p.setJointMotorControl2(bodyIndex=self.robot_B,
-                                  jointIndex=i,
-                                  controlMode=p.POSITION_CONTROL,
-                                  targetPosition=joint_pos_B[i],
-                                  targetVelocity=0,
-                                  force=100,
-                                  positionGain=0.1,
-                                  velocityGain=0.5,
-                                  maxVelocity=0.01)
+                                jointIndex=i,
+                                controlMode=p.TORQUE_CONTROL,
+                                force=computed_joint_torques_robot_B[i])
         p.stepSimulation()
   
   def GetObservation(self, p):
@@ -138,3 +116,24 @@ class StepCoopEnv(ResetCoopEnv):
     norm_ee_constraint = np.linalg.norm(ee_constraint)
     return norm_ee_constraint
 
+  def GetJointTorques(self, robot, p):
+    # State of end effector.
+    ee_state = p.getLinkState(robot, self.kukaEndEffectorIndex, computeLinkVelocity=1, computeForwardKinematics=1)
+
+    link_trn, link_rot, com_trn, com_rot, frame_pos, frame_rot, link_vt, link_vr = ee_state
+
+    # Get the joint and link state directly from Bullet.
+    joints_pos, joints_vel, joints_torq = self.getJointStates(robot)
+
+    # Get the Jacobians for the CoM of the end-effector link.
+    # Note that in this example com_rot = identity, and we would need to use com_rot.T * com_trn.
+    # The localPosition is always defined in terms of the link frame coordinates.
+    
+    zero_vec = [0.0] * len(joints_pos)
+    jac_t, jac_r = p.calculateJacobian(robot, self.kukaEndEffectorIndex, frame_pos, joints_pos, zero_vec, zero_vec)
+    
+    jac = np.vstack((np.array(jac_t), np.array(jac_r)))
+    nonlinear_forces = p.calculateInverseDynamics(self.kukaId, joints_pos, joints_vel, zero_vec)
+    desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robot, p)
+    desired_joint_torques = jac.T.dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+    return desired_joint_torques
