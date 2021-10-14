@@ -26,12 +26,15 @@ class CoopEnv(gym.Env):
     # Define action and observation space
     # They must be gym.spaces objects
     num_robots = 2
-    low_action = np.array([-1.0, -1.0, 0.0, -3.14, -3.14, -3.14] * num_robots)
-    high_action = np.array([1.0, 1.0, 1.0, 3.14, 3.14, 3.14] * num_robots)
+    force_vec_len = 6
+    max_force = 10
+    low_action = np.array([-max_force] * force_vec_len * num_robots)
+    high_action = np.array([max_force] * force_vec_len * num_robots)
     self.action_space = spaces.Box(low_action, high_action)
 
-    obs_space = np.array([100]*6*num_robots + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14])
-    assert len(obs_space) == 18
+    # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (ee_pose, desired_ee_pose)]
+    obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force] * force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * num_robots)
+    assert len(obs_space) == 30
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
     self.desired_obj_pose = [0.0, 0.0, 0.4, 0.0, 0.0, 0.0]
