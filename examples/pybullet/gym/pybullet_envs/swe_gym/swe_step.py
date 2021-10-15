@@ -6,15 +6,16 @@ from datetime import datetime
 from attrdict import AttrDict
 from collections import namedtuple
 
-from va_reset import ResetCoopEnv
+from swe_reset import ResetCoopEnv
 
 class StepCoopEnv(ResetCoopEnv):
 
   def __init__(self, robots, grasped_object, ft_id, desired_obj_pose, p):
-    self.robot_A = robots[0]
-    self.robot_B = robots[1]
+    self.robotId_A = robots[0]
+    self.robotId_B = robots[1]
     self.kukaEndEffectorIndex = 11
-    self.totalNumJoints = p.getNumJoints(self.robot_A)
+    self.totalNumJoints = p.getNumJoints(self.robotId_A)
+    self.nDof = p.computeDofCount(self.robotId_A)
     self.numJoints = 7 # number of joints for just the arm
     self.jd = [0.01] * self.totalNumJoints
     self.useSimulation = 1
@@ -28,28 +29,36 @@ class StepCoopEnv(ResetCoopEnv):
 
   def apply_action(self, action, p):
     assert len(action) == 12
-    computed_joint_torques_robot_A = self.GetJointTorques(self.robot_A, p) + action[:6]
-    computed_joint_torques_robot_B = self.GetJointTorques(self.robot_B, p)
+    computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
+    computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
     
     if (self.useSimulation):
       for i in range(200):
         for i in range(self.numJoints):
-          p.setJointMotorControl2(self.kukaId, i, p.VELOCITY_CONTROL, force=0.5)
-          p.setJointMotorControl2(bodyIndex=self.robot_A,
+          p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+          p.setJointMotorControl2(bodyIndex=self.robotId_A,
                                 jointIndex=i,
                                 controlMode=p.TORQUE_CONTROL,
                                 force=computed_joint_torques_robot_A[i])
 
-          p.setJointMotorControl2(self.kukaId, i, p.VELOCITY_CONTROL, force=0.5)
-          p.setJointMotorControl2(bodyIndex=self.robot_B,
+          p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.5)
+          p.setJointMotorControl2(bodyIndex=self.robotId_B,
                                 jointIndex=i,
                                 controlMode=p.TORQUE_CONTROL,
                                 force=computed_joint_torques_robot_B[i])
         p.stepSimulation()
   
-  def GetStepObservation(self, p):
+  def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
-    return self.GetObservation(p)
+    self.model_input = []
+    env_state = self.GetEnvState(p)
+    self.model_input += env_state["grasp_matrix_force_torque_A"]
+    self.model_input += env_state["grasp_matrix_force_torque_B"]
+    self.model_input += env_state["measured_force_torque_A"]
+    self.model_input += env_state["object_pose"]
+    self.model_input += env_state["desired_object_pose"]
+    assert len(self.model_input) == 30
+    return self.model_input
   
   def GetReward(self, p):
     reward = 0.0
@@ -85,8 +94,8 @@ class StepCoopEnv(ResetCoopEnv):
     return done, info
   
   def GetConstraint(self, p):
-    robot_A_ee_state = p.getLinkState(self.robot_A, self.kukaEndEffectorIndex)
-    robot_B_ee_state = p.getLinkState(self.robot_B, self.kukaEndEffectorIndex)
+    robot_A_ee_state = p.getLinkState(self.robotId_A, self.kukaEndEffectorIndex)
+    robot_B_ee_state = p.getLinkState(self.robotId_B, self.kukaEndEffectorIndex)
     robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
     robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
     ee_constraint = np.array(robot_A_ee_pose) - np.array(robot_B_ee_pose)
@@ -96,14 +105,14 @@ class StepCoopEnv(ResetCoopEnv):
     norm_ee_constraint = np.linalg.norm(ee_constraint)
     return norm_ee_constraint
 
-  def GetJointTorques(self, robotId, p):
+  def GetJointTorques(self, robotId, action, p):
     # State of end effector.
     ee_state = p.getLinkState(robotId, self.kukaEndEffectorIndex, computeLinkVelocity=1, computeForwardKinematics=1)
 
     link_trn, link_rot, com_trn, com_rot, frame_pos, frame_rot, link_vt, link_vr = ee_state
 
     # Get the joint and link state directly from Bullet.
-    joints_pos, joints_vel, joints_torq = self.getJointStates(robotId)
+    joints_pos, joints_vel, joints_torq = self.getJointStates(robotId, p)
 
     # Get the Jacobians for the CoM of the end-effector link.
     # Note that in this example com_rot = identity, and we would need to use com_rot.T * com_trn.
@@ -114,13 +123,49 @@ class StepCoopEnv(ResetCoopEnv):
     
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
-    desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
+    if robotId == 0:
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
+    else:
+      desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
     desired_joint_torques = jac.T.dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
-    return desired_joint_torques
+    return desired_joint_torques[:self.numJoints]
   
-  def getJointStates(self, robotId):
+  def getJointStates(self, robotId, p):
     joint_states = p.getJointStates(robotId, range(self.nDof))
     joint_positions = [state[0] for state in joint_states]
     joint_velocities = [state[1] for state in joint_states]
     joint_torques = [state[3] for state in joint_states]
     return joint_positions, joint_velocities, joint_torques
+  
+  def GetEnvState(self, p):
+    env_state = {}
+
+    # Get object pose
+    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
+    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+
+    # Get Wrench measurements at wrist
+    _, _, ft_A, _ = p.getJointState(self.robotId_A, self.ft_id)
+    _, _, ft_B, _ = p.getJointState(self.robotId_B, self.ft_id)
+    force_torque_A = list(ft_A)
+    force_torque_B = list(ft_B)
+
+    env_state["measured_force_torque_A"] = force_torque_A
+    env_state["measured_force_torque_B"] = force_torque_B
+    env_state["grasp_matrix_force_torque_A"] = self.ComputeWrenchFromGraspMatrix(self.robotId_A, p)
+    env_state["grasp_matrix_force_torque_B"] = self.ComputeWrenchFromGraspMatrix(self.robotId_B, p)
+    env_state["object_pose"] = obj_pose
+    env_state["desired_object_pose"] = self.desired_obj_pose
+    
+    return env_state
+
+  def ComputeWrenchFromGraspMatrix(self, robot, p):
+    # TODO (Victor): compute F_T = G_inv * F_o
+    wrench = [0.0] * 12
+    if robot == self.robotId_A:
+      return wrench[:6]
+    else:
+      return wrench[6:]
+  
+  def ComputeDesiredObjectWrench(self, p):
+    pass

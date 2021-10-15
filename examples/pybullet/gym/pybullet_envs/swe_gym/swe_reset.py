@@ -18,10 +18,10 @@ class ResetCoopEnv(InitCoopEnv):
     p.resetBasePositionAndOrientation(self.grasped_object, [0, 0.7, 0.02], p.getQuaternionFromEuler([0, 0, 0]))
     # Reset the robots to a position where the grippers can grasp the object
     robot_A_reset = [-1.184011299413845, -1.4364158475353175, -1.0899721376131706, 1.0667906797236881, 1.2044237679252714, 
-      -1.2280706100083119, 0.988134098323069, 0.0, 0.0, 0.0, 0.003781686634043995]
+      -1.2280706100083119, 0.988134098323069, 0.0, 0.0, 0.0, 0.003781686634043995, 0.0]
     
     robot_B_reset = [-1.0663547431079572, -1.4050373708258017, -1.017445912897535, 1.0546136723514878, 1.1190637184529868, 
-      -1.2119703753287736, 1.157260237744829, 0.0, 0.0, 0.0, -0.029547676578768497]
+      -1.2119703753287736, 1.157260237744829, 0.0, 0.0, 0.0, -0.029547676578768497, 0.0]
 
     for i in range(self.totalNumJoints):
       p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
@@ -85,11 +85,11 @@ class ResetCoopEnv(InitCoopEnv):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = []
     env_state = self.GetEnvState(p)
-    self.model_input.append(env_state["grasp_matrix_force_torque_A"])
-    self.model_input.append(env_state["grasp_matrix_force_torque_B"])
-    self.model_input.append(env_state["measured_force_torque_A"])
-    self.model_input.append(env_state["object_pose"])
-    self.model_input.append(env_state["desired_object_pose"])
+    self.model_input += env_state["grasp_matrix_force_torque_A"]
+    self.model_input += env_state["grasp_matrix_force_torque_B"]
+    self.model_input += env_state["measured_force_torque_A"]
+    self.model_input += env_state["object_pose"]
+    self.model_input += env_state["desired_object_pose"]
     assert len(self.model_input) == 30
     return self.model_input
   
@@ -112,6 +112,8 @@ class ResetCoopEnv(InitCoopEnv):
     env_state["grasp_matrix_force_torque_B"] = self.ComputeWrenchFromGraspMatrix(self.kukaId_B, p)
     env_state["object_pose"] = obj_pose
     env_state["desired_object_pose"] = self.desired_obj_pose
+    
+    return env_state
 
   def ComputeWrenchFromGraspMatrix(self, robot, p):
     # TODO (Victor): compute F_T = G_inv * F_o
