@@ -13,10 +13,15 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 # model = DDPG('MlpPolicy', env, verbose=1, action_noise=action_noise)
 # model = DDPG('MlpPolicy', env, verbose=1)
 
+
 model = PPO2('MlpPolicy', env, verbose=1)
 
 # Train the agent
 model.learn(total_timesteps=2000)
+
+# while 1:
+#     a = 1
+
 print("")
 print("---------- Done training -----------------")
 

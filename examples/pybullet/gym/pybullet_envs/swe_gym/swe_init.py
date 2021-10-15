@@ -13,6 +13,8 @@ class InitCoopEnv:
     p.loadURDF("plane.urdf", [0, 0, 0.0], useFixedBase=True)
     self.kukaId_A = p.loadURDF("franka_panda/panda.urdf", [-0.3, 0, 0], useFixedBase=True)
     self.kukaId_B = p.loadURDF("franka_panda/panda.urdf", [0.3, 0, 0], useFixedBase=True)
+    print("-------bbbbbbbbbbb!----------")
+
     self.grasped_object = p.loadURDF("va_kuka_robot/grasp_object.urdf", [0, 0.7, 0.02], useFixedBase=False)
     p.setGravity(0, 0, -9.81)
     self.kukaEndEffectorIndex = 11
@@ -30,6 +32,7 @@ class InitCoopEnv:
     p.enableJointForceTorqueSensor(self.kukaId_B, self.ft_id, 1)
 
     p.changeDynamics(self.grasped_object, -1, lateralFriction = 5)
+    self.robots = [self.kukaId_A, self.kukaId_B]
 
     self.useSimulation = 1
     self.useRealTimeSimulation = 0

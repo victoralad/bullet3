@@ -13,9 +13,9 @@ from datetime import datetime
 from attrdict import AttrDict
 from collections import namedtuple
 
-from va_init import InitCoopEnv
-from va_reset import ResetCoopEnv
-from va_step import StepCoopEnv
+from swe_init import InitCoopEnv
+from swe_reset import ResetCoopEnv
+from swe_step import StepCoopEnv
 
 class CoopEnv(gym.Env):
   """Custom Environment that follows gym interface"""
@@ -53,7 +53,7 @@ class CoopEnv(gym.Env):
 
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
-    observation = self.step_coop_env.GetObservation(p)
+    observation = self.step_coop_env.GetStepObservation(p)
     reward = self.step_coop_env.GetReward(p)
     done, info = self.step_coop_env.GetInfo(p)
     self.sum_reward += reward

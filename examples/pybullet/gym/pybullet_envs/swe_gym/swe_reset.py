@@ -5,7 +5,7 @@ from datetime import datetime
 from attrdict import AttrDict
 from collections import namedtuple
 
-from va_init import InitCoopEnv
+from swe_init import InitCoopEnv
 
 class ResetCoopEnv(InitCoopEnv):
 
@@ -84,6 +84,7 @@ class ResetCoopEnv(InitCoopEnv):
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = []
+    env_state = self.GetEnvState(p)
     self.model_input.append(env_state["grasp_matrix_force_torque_A"])
     self.model_input.append(env_state["grasp_matrix_force_torque_B"])
     self.model_input.append(env_state["measured_force_torque_A"])
