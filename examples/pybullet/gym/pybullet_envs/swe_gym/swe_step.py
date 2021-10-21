@@ -55,40 +55,34 @@ class StepCoopEnv(ResetCoopEnv):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = []
     self.ComputeEnvState(p)
-    self.model_input += self.ComputeWrenchFromGraspMatrix(self.robotId_A, p)
-    self.model_input += self.ComputeWrenchFromGraspMatrix(self.robotId_B, p)
-    self.model_input += self.env_state["measured_force_torque_A"]
-    self.model_input += self.env_state["object_pose"]
-    self.model_input += self.desired_obj_pose
+    self.model_input = np.append(self.model_input, self.ComputeWrenchFromGraspMatrix(self.robotId_A, p))
+    self.model_input = np.append(self.model_input, self.ComputeWrenchFromGraspMatrix(self.robotId_B, p))
+    self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
+    self.model_input = np.append(self.model_input, np.array(self.env_state["object_pose"]))
+    self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     assert len(self.model_input) == 30
     return self.model_input
   
   def GetReward(self, p):
     reward = 0.0
-    # u = np.array(self.model_input[-6:])
-    # Q = 100*np.eye(len(u))
-    # # Q[4][4] = 1000*Q[4][4]
-    # # Q[2][2] = 1000*Q[2][2]
-    # obj_pose_error_reward =  -1 * u.T @ (Q @ u)
 
-    # if not self.constraint_set:
-    #   self.ee_constraint = self.GetConstraint(p)
-    #   self.constraint_set = True
-    # curr_ee_constraint = self.GetConstraint(p)
-    # self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
-    # ee_constr_reward = -self.ee_constraint_reward
+    # Reward to force the agent to try to maintain a rigid grasp. @Alberta, you may ignore this when computing the overall reward.
+    if not self.constraint_set:
+      self.ee_constraint = self.GetConstraint(p)
+      self.constraint_set = True
+    curr_ee_constraint = self.GetConstraint(p)
+    self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
+    ee_constr_reward = -self.ee_constraint_reward
 
-    # fI = np.array(self.model_input[:6]) - np.array(self.model_input[6:12]) # Internal stress = f_A - f_B. The computed value is wrong and must be corrected ASAP.
-    # R = np.eye(len(fI))
-    # wrench_reward = -1 * fI.T @ (R @ fI)
-
-    # reward = obj_pose_error_reward + ee_constr_reward + wrench_reward
     return reward
   
   def GetInfo(self, p):
     done = False
     info = {1: 'Still training'}
-    obj_pose_error = self.model_input[-6:]
+    obj_pose_error = [0.0]*6
+    for i in range(len(obj_pose_error)):
+      obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
+    obj_vel_error = self.env_state["object_velocity"]
     norm = np.linalg.norm(obj_pose_error)
     if norm > 2.0 or self.ee_constraint_reward > 0.05:
       done = True
@@ -142,7 +136,7 @@ class StepCoopEnv(ResetCoopEnv):
     # Get object pose & velocity
     obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
-    obj_vel = p.getBaseVelocity(Self.grasped_object)
+    obj_vel = p.getBaseVelocity(self.grasped_object)
     obj_vel = list(obj_vel[1]) + list(obj_vel[1])
 
     # Compute the pose of both end effectors
@@ -182,10 +176,12 @@ class StepCoopEnv(ResetCoopEnv):
     Kv = 5.2 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
     # State of object.
     obj_state = p.getBasePositionAndOrientation(self.grasped_object)
-
-    link_trn, link_rot, com_trn, com_rot, frame_pos, frame_rot, link_vt, link_vr = ee_state
-    obj_pose_error = self.desired_obj_pose - self.env_state["object_pose"]
-    obj_vel_error = -self.env_state["object_velocity"]
+    obj_pose_error = [0.0]*6
+    for i in range(len(obj_pose_error)):
+      obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
+    obj_vel_error = self.env_state["object_velocity"]
+    for i in range(len(obj_vel_error)):
+      obj_vel_error[i] = -obj_vel_error[i]
     desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     return desired_obj_wrench
   
