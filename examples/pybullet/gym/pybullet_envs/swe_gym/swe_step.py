@@ -25,10 +25,13 @@ class StepCoopEnv(ResetCoopEnv):
     self.constraint_set = False
     self.ee_constraint = 0
     self.ee_constraint_reward = 0 # This helps ensure that the grasp constraint is not violated.
+    self.env_state = {}
+    self.ComputeEnvState(p)
 
 
   def apply_action(self, action, p):
     assert len(action) == 12
+    self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
     computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
     
@@ -51,12 +54,12 @@ class StepCoopEnv(ResetCoopEnv):
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = []
-    env_state = self.GetEnvState(p)
-    self.model_input += env_state["grasp_matrix_force_torque_A"]
-    self.model_input += env_state["grasp_matrix_force_torque_B"]
-    self.model_input += env_state["measured_force_torque_A"]
-    self.model_input += env_state["object_pose"]
-    self.model_input += env_state["desired_object_pose"]
+    self.ComputeEnvState(p)
+    self.model_input += self.ComputeWrenchFromGraspMatrix(self.robotId_A, p)
+    self.model_input += self.ComputeWrenchFromGraspMatrix(self.robotId_B, p)
+    self.model_input += self.env_state["measured_force_torque_A"]
+    self.model_input += self.env_state["object_pose"]
+    self.model_input += self.desired_obj_pose
     assert len(self.model_input) == 30
     return self.model_input
   
@@ -94,10 +97,8 @@ class StepCoopEnv(ResetCoopEnv):
     return done, info
   
   def GetConstraint(self, p):
-    robot_A_ee_state = p.getLinkState(self.robotId_A, self.kukaEndEffectorIndex)
-    robot_B_ee_state = p.getLinkState(self.robotId_B, self.kukaEndEffectorIndex)
-    robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
-    robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
+    robot_A_ee_pose = self.env_state["robot_A_ee_pose"]
+    robot_B_ee_pose = self.env_state["robot_B_ee_pose"]
     ee_constraint = np.array(robot_A_ee_pose) - np.array(robot_B_ee_pose)
     # subroutine to handle situations where joint angles cross PI or -PI
     for i in range(3):
@@ -137,12 +138,18 @@ class StepCoopEnv(ResetCoopEnv):
     joint_torques = [state[3] for state in joint_states]
     return joint_positions, joint_velocities, joint_torques
   
-  def GetEnvState(self, p):
-    env_state = {}
-
-    # Get object pose
+  def ComputeEnvState(self, p):
+    # Get object pose & velocity
     obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    obj_vel = p.getBaseVelocity(Self.grasped_object)
+    obj_vel = list(obj_vel[1]) + list(obj_vel[1])
+
+    # Compute the pose of both end effectors
+    robot_A_ee_state = p.getLinkState(self.robotId_A, self.kukaEndEffectorIndex)
+    robot_B_ee_state = p.getLinkState(self.robotId_B, self.kukaEndEffectorIndex)
+    robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
+    robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
 
     # Get Wrench measurements at wrist
     _, _, ft_A, _ = p.getJointState(self.robotId_A, self.ft_id)
@@ -150,22 +157,48 @@ class StepCoopEnv(ResetCoopEnv):
     force_torque_A = list(ft_A)
     force_torque_B = list(ft_B)
 
-    env_state["measured_force_torque_A"] = force_torque_A
-    env_state["measured_force_torque_B"] = force_torque_B
-    env_state["grasp_matrix_force_torque_A"] = self.ComputeWrenchFromGraspMatrix(self.robotId_A, p)
-    env_state["grasp_matrix_force_torque_B"] = self.ComputeWrenchFromGraspMatrix(self.robotId_B, p)
-    env_state["object_pose"] = obj_pose
-    env_state["desired_object_pose"] = self.desired_obj_pose
+    self.env_state["measured_force_torque_A"] = force_torque_A
+    self.env_state["measured_force_torque_B"] = force_torque_B
+    self.env_state["object_pose"] = obj_pose
+    self.env_state["object_velocity"] = obj_vel
+    self.env_state["robot_A_ee_pose"] = robot_A_ee_pose
+    self.env_state["robot_B_ee_pose"] = robot_B_ee_pose
+  
+  def GetEnvState(self):
+    return self.env_state
     
-    return env_state
-
   def ComputeWrenchFromGraspMatrix(self, robot, p):
     # TODO (Victor): compute F_T = G_inv * F_o
-    wrench = [0.0] * 12
+    desired_obj_wrench = self.ComputeDesiredObjectWrench(p)
+    grasp_matrix = self.ComputeGraspMatrix(p)
+    wrench = np.linalg.pinv(grasp_matrix).dot(desired_obj_wrench)
     if robot == self.robotId_A:
       return wrench[:6]
     else:
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
-    pass
+    Kp = 5.5 * np.array([5, 5, 5, 2, 2, 2])
+    Kv = 5.2 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
+    # State of object.
+    obj_state = p.getBasePositionAndOrientation(self.grasped_object)
+
+    link_trn, link_rot, com_trn, com_rot, frame_pos, frame_rot, link_vt, link_vr = ee_state
+    obj_pose_error = self.desired_obj_pose - self.env_state["object_pose"]
+    obj_vel_error = -self.env_state["object_velocity"]
+    desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
+    return desired_obj_wrench
+  
+  def ComputeGraspMatrix(self, p):
+    rp_A = self.env_state["robot_A_ee_pose"]
+    rp_B = self.env_state["robot_B_ee_pose"]
+    top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3)), np.eye(3), np.zeros((3, 3))))
+    bottom_three_rows = np.hstack((self.skew(rp_A), np.eye(3), self.skew(rp_B), np.eye(3)))
+    grasp_matrix = np.vstack((top_three_rows, bottom_three_rows))
+    return grasp_matrix
+
+  def skew(self, vector): 
+    vector = list(vector)
+    return np.array([[0, -vector[2], vector[1]], 
+                     [vector[2], 0, -vector[0]], 
+                     [-vector[1], vector[0], 0]])
