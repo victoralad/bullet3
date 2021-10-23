@@ -126,7 +126,7 @@ class StepCoopEnv(ResetCoopEnv):
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     if robotId == 0:
-      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
     else:
       desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
     desired_joint_torques = jac.T.dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
@@ -173,6 +173,16 @@ class StepCoopEnv(ResetCoopEnv):
     desired_obj_wrench = self.ComputeDesiredObjectWrench(p)
     grasp_matrix = self.ComputeGraspMatrix(p)
     wrench = np.linalg.pinv(grasp_matrix).dot(desired_obj_wrench)
+    # print("------AAAAAA----------")
+    # self.ComputeEnvState(p)
+    # print(desired_obj_wrench)
+    # print(wrench[:6])
+    # print(wrench[6:])
+    # print(self.env_state["robot_A_ee_pose"])
+    # print(self.env_state["robot_B_ee_pose"])
+    # while 1:
+    #   a = 1
+    # quit()
     if robot == self.robotId_A:
       return wrench[:6]
     else:
@@ -186,14 +196,18 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error = [0.0]*6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
+    for i in range(3):
+      obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
+    
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
-      obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
+    obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error + np.array(obj_gravity_vector)
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
+    # TODO(VICTOR): Need to convert rp_A and rp_B to center of mass frame.
     rp_A = self.env_state["robot_A_ee_pose"]
     rp_B = self.env_state["robot_B_ee_pose"]
     top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3)), np.eye(3), np.zeros((3, 3))))

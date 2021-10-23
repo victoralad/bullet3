@@ -77,17 +77,6 @@ class ResetCoopEnv(InitCoopEnv):
                                   maxVelocity=0.01)
       p.stepSimulation()
 
-
-    # for i in range(5000):
-    #   p.stepSimulation()
-    
-    print("------AAAAAA----------")
-    print(self.env_state["robot_A_ee_pose"])
-    print(self.env_state["robot_B_ee_pose"])
-    while 1:
-      a = 1
-    quit()
-
   # Controls the gripper (open and close commands)
   def gripper(self, robot, finger_target, p):
         '''
@@ -166,6 +155,9 @@ class ResetCoopEnv(InitCoopEnv):
     obj_pose_error = [0.0]*6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
+    for i in range(3):
+      obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
+
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
@@ -174,6 +166,7 @@ class ResetCoopEnv(InitCoopEnv):
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
+    # TODO(VICTOR): Need to convert rp_A and rp_B to center of mass frame.
     rp_A = self.env_state["robot_A_ee_pose"]
     rp_B = self.env_state["robot_B_ee_pose"]
     top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3)), np.eye(3), np.zeros((3, 3))))
