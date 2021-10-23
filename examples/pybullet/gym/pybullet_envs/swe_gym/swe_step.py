@@ -126,7 +126,7 @@ class StepCoopEnv(ResetCoopEnv):
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     if robotId == 0:
-      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
     else:
       desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
     desired_joint_torques = jac.T.dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
