@@ -84,10 +84,17 @@ class StepCoopEnv(ResetCoopEnv):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     obj_vel_error = self.env_state["object_velocity"]
     norm = np.linalg.norm(obj_pose_error)
-    if norm > 2.0 or self.ee_constraint_reward > 0.05:
+
+    if norm > 2.0 and self.ee_constraint_reward > 0.05:
       done = True
       info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
               2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+    elif norm > 2.0:
+      done = True
+      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+    elif self.ee_constraint_reward > 0.05:
+      done = True
+      info = {2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     return done, info
   
   def GetConstraint(self, p):
