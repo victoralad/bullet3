@@ -47,13 +47,13 @@ class ResetCoopEnv(InitCoopEnv):
     
     # Move the object away from the floor after grasping it
 
-    # joint_pos_A = [1.6215659536342868, 1.9575781843548509, -0.14404269719109372, -1.496128956979969, 0.18552992566925916, 2.4407372489326353, 1.8958616972085343]
-    # joint_pos_B = [2.470787979046169, 2.5992683071619733, -1.3190493822244016, -1.3970919589354867, 1.5466399312306398, 1.8048923566089303, 1.8741340429221176]
+    # joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
+    # joint_pos_B = [-1.0486248920719832, -1.1473636221157095, -1.1177883364427017, 1.024559282045054, 0.9666073630561682, -1.4632516957457011, 1.208288290582244]
 
     joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
-    joint_pos_B = [-1.0486248920719832, -1.1473636221157095, -1.1177883364427017, 1.024559282045054, 0.9666073630561682, -1.4632516957457011, 1.208288290582244]
+    joint_pos_B = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
     
-    for i in range(15000):
+    for i in range(1):
       if (self.useSimulation):
         for i in range(self.numJoints):
           p.setJointMotorControl2(bodyIndex=self.kukaId_A,
@@ -76,9 +76,17 @@ class ResetCoopEnv(InitCoopEnv):
                                   velocityGain=0.5,
                                   maxVelocity=0.01)
       p.stepSimulation()
+
+
+    # for i in range(5000):
+    #   p.stepSimulation()
     
-    # while 1:
-    #   a = 1
+    print("------AAAAAA----------")
+    print(self.env_state["robot_A_ee_pose"])
+    print(self.env_state["robot_B_ee_pose"])
+    while 1:
+      a = 1
+    quit()
 
   # Controls the gripper (open and close commands)
   def gripper(self, robot, finger_target, p):
@@ -161,7 +169,8 @@ class ResetCoopEnv(InitCoopEnv):
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
-    desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
+    obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
+    desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error + np.array(obj_gravity_vector)
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
@@ -177,3 +186,15 @@ class ResetCoopEnv(InitCoopEnv):
     return np.array([[0, -vector[2], vector[1]], 
                      [vector[2], 0, -vector[0]], 
                      [-vector[1], vector[0], 0]])
+  
+  def getObjectDynamics(self, p):
+    dynamics_info = p.getDynamicsInfo(self.grasped_object, -1)
+    obj_mass = dynamics_info[0]
+    obj_inertia_vector = list(dynamics_info[2])
+    obj_inertia_matrix = np.diag(obj_inertia_vector) # needs to be transformed
+    mass_matrix_top_row = np.hstack((obj_mass * np.eye(3), np.zeros((3, 3))))
+    mass_matrix_bottom_row = np.hstack((np.zeros((3, 3)), obj_inertia_matrix))
+    obj_mass_matrix = np.vstack((mass_matrix_top_row, mass_matrix_bottom_row))
+    obj_coriolis_vector = None
+    obj_gravity_vector = obj_mass * np.array([0.0, 0.0, 9.81, 0.0, 0.0, 0.0])
+    return obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector

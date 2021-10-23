@@ -189,7 +189,8 @@ class StepCoopEnv(ResetCoopEnv):
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
-    desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
+      obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
+    desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error + np.array(obj_gravity_vector)
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
@@ -205,3 +206,15 @@ class StepCoopEnv(ResetCoopEnv):
     return np.array([[0, -vector[2], vector[1]], 
                      [vector[2], 0, -vector[0]], 
                      [-vector[1], vector[0], 0]])
+
+  def getObjectDynamics(self, p):
+    dynamics_info = p.getDynamicsInfo(self.grasped_object, -1)
+    obj_mass = dynamics_info[0]
+    obj_inertia_vector = list(dynamics_info[2])
+    obj_inertia_matrix = np.diag(obj_inertia_vector) # needs to be transformed
+    mass_matrix_top_row = np.hstack((obj_mass * np.eye(3), np.zeros((3, 3))))
+    mass_matrix_bottom_row = np.hstack((np.zeros((3, 3)), obj_inertia_matrix))
+    obj_mass_matrix = np.vstack((mass_matrix_top_row, mass_matrix_bottom_row))
+    obj_coriolis_vector = None
+    obj_gravity_vector = obj_mass * np.array([0.0, 0.0, 9.81, 0.0, 0.0, 0.0])
+    return obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector
