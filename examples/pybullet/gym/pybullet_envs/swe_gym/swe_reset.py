@@ -110,16 +110,22 @@ class ResetCoopEnv(InitCoopEnv):
   
   def ComputeEnvState(self, p):
     # Get object pose & velocity
-    obj_pose = p.getBasePositionAndOrientation(self.grasped_object)
-    obj_pose = list(obj_pose[0]) + list(p.getEulerFromQuaternion(obj_pose[1]))
+    obj_pose_state = p.getBasePositionAndOrientation(self.grasped_object)
+    obj_pose = list(obj_pose_state[0]) + list(p.getEulerFromQuaternion(obj_pose_state[1]))
     obj_vel = p.getBaseVelocity(self.grasped_object)
     obj_vel = list(obj_vel[1]) + list(obj_vel[1])
 
-    # Compute the pose of both end effectors
+    # Compute the pose of both end effectors in the world frame.
     robot_A_ee_state = p.getLinkState(self.kukaId_A, self.kukaEndEffectorIndex)
     robot_B_ee_state = p.getLinkState(self.kukaId_B, self.kukaEndEffectorIndex)
     robot_A_ee_pose = list(robot_A_ee_state[0]) + list(p.getEulerFromQuaternion(robot_A_ee_state[1]))
     robot_B_ee_pose = list(robot_B_ee_state[0]) + list(p.getEulerFromQuaternion(robot_B_ee_state[1]))
+
+    # Compute the pose of both end effectors in the object's frame.
+    obj_orn_matrix = np.array(p.getMatrixFromQuaternion(obj_pose_state[1]))
+    obj_orn_matrix = np.reshape(obj_orn_matrix, (3, 3))
+    robot_A_ee_pose_obj_frame = np.linalg.inv(obj_orn_matrix).dot((np.array(robot_A_ee_state[0]) - np.array(obj_pose_state[0])))
+    robot_B_ee_pose_obj_frame = np.linalg.inv(obj_orn_matrix).dot((np.array(robot_B_ee_state[0]) - np.array(obj_pose_state[0])))
 
     # Get Wrench measurements at wrist
     _, _, ft_A, _ = p.getJointState(self.kukaId_A, self.ft_id)
@@ -133,6 +139,8 @@ class ResetCoopEnv(InitCoopEnv):
     self.env_state["object_velocity"] = obj_vel
     self.env_state["robot_A_ee_pose"] = robot_A_ee_pose
     self.env_state["robot_B_ee_pose"] = robot_B_ee_pose
+    self.env_state["robot_A_ee_pose_obj_frame"] = robot_A_ee_pose_obj_frame
+    self.env_state["robot_B_ee_pose_obj_frame"] = robot_B_ee_pose_obj_frame
   
   def GetEnvState(self):
     return self.env_state
@@ -150,8 +158,6 @@ class ResetCoopEnv(InitCoopEnv):
   def ComputeDesiredObjectWrench(self, p):
     Kp = 5.5 * np.array([5, 5, 5, 2, 2, 2])
     Kv = 5.2 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
-    # State of object.
-    obj_state = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose_error = [0.0]*6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
