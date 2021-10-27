@@ -136,6 +136,7 @@ class ResetCoopEnv(InitCoopEnv):
     self.env_state["measured_force_torque_A"] = force_torque_A
     self.env_state["measured_force_torque_B"] = force_torque_B
     self.env_state["object_pose"] = obj_pose
+    self.env_state["object_orn_matrix"] = obj_orn_matrix
     self.env_state["object_velocity"] = obj_vel
     self.env_state["robot_A_ee_pose"] = robot_A_ee_pose
     self.env_state["robot_B_ee_pose"] = robot_B_ee_pose
@@ -168,13 +169,13 @@ class ResetCoopEnv(InitCoopEnv):
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
-    desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error + np.array(obj_gravity_vector)
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
     # TODO(VICTOR): Need to convert rp_A and rp_B to center of mass frame.
-    rp_A = self.env_state["robot_A_ee_pose"]
-    rp_B = self.env_state["robot_B_ee_pose"]
+    rp_A = self.env_state["robot_A_ee_pose_obj_frame"]
+    rp_B = self.env_state["robot_B_ee_pose_obj_frame"]
     top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3)), np.eye(3), np.zeros((3, 3))))
     bottom_three_rows = np.hstack((self.skew(rp_A), np.eye(3), self.skew(rp_B), np.eye(3)))
     grasp_matrix = np.vstack((top_three_rows, bottom_three_rows))
@@ -191,9 +192,12 @@ class ResetCoopEnv(InitCoopEnv):
     obj_mass = dynamics_info[0]
     obj_inertia_vector = list(dynamics_info[2])
     obj_inertia_matrix = np.diag(obj_inertia_vector) # needs to be transformed
+    obj_inertia_matrix = ((self.env_state["object_orn_matrix"]).dot(obj_inertia_matrix)).dot((self.env_state["object_orn_matrix"]).T)
     mass_matrix_top_row = np.hstack((obj_mass * np.eye(3), np.zeros((3, 3))))
     mass_matrix_bottom_row = np.hstack((np.zeros((3, 3)), obj_inertia_matrix))
     obj_mass_matrix = np.vstack((mass_matrix_top_row, mass_matrix_bottom_row))
-    obj_coriolis_vector = None
+    body_omega = (self.env_state["object_orn_matrix"]).dot((self.env_state["object_velocity"])[3:])
+    body_omega_transformed = (self.skew(body_omega).dot(obj_inertia_matrix)).dot(body_omega)
+    obj_coriolis_vector = np.hstack((np.zeros(3), body_omega_transformed))
     obj_gravity_vector = obj_mass * np.array([0.0, 0.0, 9.81, 0.0, 0.0, 0.0])
     return obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector
