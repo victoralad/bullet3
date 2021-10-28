@@ -74,27 +74,53 @@ class StepCoopEnv(ResetCoopEnv):
     self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
     ee_constr_reward = -self.ee_constraint_reward
 
+    # get pose error of the bar and done condition
+    norm = self.GetPoseError()
+    done, info, case = self.CheckDone(norm)
+
+    # Naive reward definition
+    if not done:
+      reward = - norm
+    else:
+      reward = - 1000
+
     return reward
-  
-  def GetInfo(self, p):
-    done = False
-    info = {1: 'Still training'}
-    obj_pose_error = [0.0]*6
+
+  def GetPoseError(self):
+    obj_pose_error = [0.0] * 6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     obj_vel_error = self.env_state["object_velocity"]
     norm = np.linalg.norm(obj_pose_error)
 
+    return norm
+
+  def CheckDone(self, norm):
+
+    done = False
+    info = {1: 'Still training'}
+
     if norm > 2.0 and self.ee_constraint_reward > 0.05:
       done = True
       info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
               2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      case = 0
     elif norm > 2.0:
       done = True
       info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+      case = 1
     elif self.ee_constraint_reward > 0.05:
       done = True
       info = {2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      case = 2
+
+    return done, info, case
+
+  def GetInfo(self, p):
+
+    norm = self.GetPoseError()
+    done, info, _ = self.CheckDone(norm)
+
     return done, info
   
   def GetConstraint(self, p):

@@ -69,6 +69,7 @@ class CoopEnv(gym.Env):
     print("Info:", info)
     return observation, reward, done, info
 
+
   def reset(self):
     print("------------- Resetting environment, Episode: {} --------------".format(self.num_episodes))
     self.num_episodes += 1.0
