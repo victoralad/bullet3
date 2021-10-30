@@ -124,12 +124,18 @@ class StepCoopEnv(ResetCoopEnv):
     jac_t, jac_r = p.calculateJacobian(robotId, self.kukaEndEffectorIndex, frame_pos, joints_pos, zero_vec, zero_vec)
     
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
+    jac = jac[:, :7]
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
-    if robotId == 0:
+    nonlinear_forces = nonlinear_forces[:7]
+    if robotId == self.robotId_A:
       desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
     else:
       desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
-    desired_joint_torques = jac.T.dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+    robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
+    robot_inertia_matrix = robot_inertia_matrix[:7, :7]
+    # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
+    dyn_ctnt_inv = np.eye(6)
+    desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
     return desired_joint_torques[:self.numJoints]
   
   def getJointStates(self, robotId, p):
@@ -186,13 +192,13 @@ class StepCoopEnv(ResetCoopEnv):
     # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
 
-    print("------AAAAAA----------")
-    self.ComputeEnvState(p)
-    print(desired_obj_wrench)
-    print(wrench[:6])
-    print(wrench[6:])
-    print(self.env_state["robot_A_ee_pose_obj_frame"])
-    print(self.env_state["robot_B_ee_pose_obj_frame"])
+    # print("------AAAAAA----------")
+    # self.ComputeEnvState(p)
+    # print(desired_obj_wrench)
+    # print(wrench[:6])
+    # print(wrench[6:])
+    # print(self.env_state["robot_A_ee_pose_obj_frame"])
+    # print(self.env_state["robot_B_ee_pose_obj_frame"])
     # np.set_printoptions(linewidth=150)
     # for row in grasp_matrix:
     #   print(row)
@@ -206,8 +212,8 @@ class StepCoopEnv(ResetCoopEnv):
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 6 * np.array([8, 8, 12, 1.5, 0.1, 0.1])
-    Kv = 0.5 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
+    Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
+    Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
     obj_pose_error = [0.0]*6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
@@ -218,15 +224,15 @@ class StepCoopEnv(ResetCoopEnv):
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
-    print("obj_pose_error")
-    print(obj_pose_error)
-    # obj_mass_matrix = np.eye(6)
+    # print("obj_pose_error")
+    # print(obj_pose_error)
+    # print(self.env_state["object_pose"])
+    obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
-    # TODO(VICTOR): Need to convert rp_A and rp_B to center of mass frame.
     rp_A = self.env_state["robot_A_ee_pose_obj_frame"]
     rp_B = self.env_state["robot_B_ee_pose_obj_frame"]
     top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3)), np.eye(3), np.zeros((3, 3))))
