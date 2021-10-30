@@ -181,15 +181,21 @@ class StepCoopEnv(ResetCoopEnv):
     # TODO (Victor): compute F_T = G_inv * F_o
     desired_obj_wrench = self.ComputeDesiredObjectWrench(p)
     grasp_matrix = self.ComputeGraspMatrix(p)
-    wrench = np.linalg.pinv(grasp_matrix).dot(desired_obj_wrench)
+    inv_grasp_matrix = np.linalg.pinv(grasp_matrix)
+    # grasp_matrix_sq = grasp_matrix.dot(grasp_matrix.T)
+    # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
+    wrench = inv_grasp_matrix.dot(desired_obj_wrench)
 
-    # print("------AAAAAA----------")
-    # self.ComputeEnvState(p)
-    # print(desired_obj_wrench)
-    # print(wrench[:6])
-    # print(wrench[6:])
-    # print(self.env_state["robot_A_ee_pose_obj_frame"])
-    # print(self.env_state["robot_B_ee_pose_obj_frame"])
+    print("------AAAAAA----------")
+    self.ComputeEnvState(p)
+    print(desired_obj_wrench)
+    print(wrench[:6])
+    print(wrench[6:])
+    print(self.env_state["robot_A_ee_pose_obj_frame"])
+    print(self.env_state["robot_B_ee_pose_obj_frame"])
+    # np.set_printoptions(linewidth=150)
+    # for row in grasp_matrix:
+    #   print(row)
     # count = 10000000
     # while count:
     #   count -= 1
@@ -200,8 +206,8 @@ class StepCoopEnv(ResetCoopEnv):
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 5.5 * np.array([5, 5, 5, 2, 2, 2])
-    Kv = 5.2 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
+    Kp = 6 * np.array([8, 8, 12, 1.5, 0.1, 0.1])
+    Kv = 0.5 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
     obj_pose_error = [0.0]*6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
@@ -212,7 +218,11 @@ class StepCoopEnv(ResetCoopEnv):
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
+    print("obj_pose_error")
+    print(obj_pose_error)
+    # obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
+    # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
