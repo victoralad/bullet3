@@ -12,7 +12,7 @@ General Two-Head Architecture
 """
 class Two_Head(nn.Module):
 
-    def __init__(self, state_dim, activation=nn.Tanh):
+    def __init__(self, state_dim, action_dim=6, activation=nn.Tanh):
         super(Two_Head, self).__init__()
 
         # TODO: do we want tanh or ReLU?
@@ -28,7 +28,7 @@ class Two_Head(nn.Module):
             activation(),
             nn.Linear(32, 32, bias=True),
             activation(),
-            nn.Linear(32, 2, bias=True)     # 2 as we are predicting mean and deviation of density probability function
+            nn.Linear(32, action_dim, bias=True)     # 2 as we are predicting mean and deviation of density probability function
         )
 
         self.critic = nn.Sequential(
@@ -54,24 +54,34 @@ PPO network
 """
 class ActorCritic(nn.Module):
 
-    def __init__(self, state_dim):
+    def __init__(self, state_dim, action_dim=6, learn_cov=False):
         super(ActorCritic, self).__init__()
 
-        self.model = Two_Head(state_dim)
+        self.model = Two_Head(state_dim, action_dim)
         self.softmax = nn.Softmax(dim=-1)
 
+        # TODO: at the moment we are not learning the covariance matrix but just the mean
+        self.cov_var = torch.full(size=(action_dim,), fill_value=0.5)
+        self.cov_mat = torch.diag(self.cov_var)
+
     def get_action(self, state):
+        # Get action means from the model
         action_parameters = self.model.forward_pi(state)
 
         # get mean and std, get normal distribution
-        mu, sigma = action_parameters[:, :1], torch.exp(action_parameters[:, 1:])
-        m = torch.normal(mu[:, 0], sigma[:, 0])
+        dist = MultivariateNormal(action_parameters.squeeze(), self.cov_mat.squeeze())
+
+        # mu, sigma = action_parameters[:, :1], torch.exp(action_parameters[:, 1:])
+        # m = torch.normal(mu[:, 0], sigma[:, 0])
 
         # sample action, get log probability
-        action = m.sample()
-        action_logprob = m.log_prob(action)
+        action = dist.sample()
+        action_logprob = dist.log_prob(action)
 
-        return action.item(), action_logprob
+        actions = torch.cat((action, state[0, 6:12]))
+
+
+        return actions, action_logprob #actions.item(), action_logprob
 
     def evaluate(self, state, action):
         action_parameters, state_value = self.model.forward(state)

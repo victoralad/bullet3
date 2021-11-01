@@ -38,13 +38,13 @@ class PPO(nn.Module):
         self.epsilon0 = 0.9
 
         # TODO: modify input of noetwork
-        self.policy = ActorCritic(10).to(device)
+        self.policy = ActorCritic(30).to(device)
         # if load_pretrained:  # if load actor-critic network params from file
         #     self.load_model()
         self.MSE_loss = nn.MSELoss()  # to calculate critic loss
         self.policy_optim = RMSprop(self.policy.parameters(), lr=lr)
 
-        self.old_policy = ActorCritic(10).to(device)
+        self.old_policy = ActorCritic(30).to(device)
         self.old_policy.load_state_dict(self.policy.state_dict())
 
     def get_action(self, state, test=False):
@@ -135,7 +135,7 @@ class PPO(nn.Module):
 
     def to_tensor(self, array):
         if isinstance(array, np.ndarray):
-            return torch.from_numpy(array).float().to(self.device)
+            return torch.from_numpy(np.expand_dims(array, 0)).float().to(self.device)
         else:
             return torch.tensor(array, dtype=torch.float).to(self.device)
 

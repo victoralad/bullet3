@@ -99,19 +99,20 @@ class StepCoopEnv(ResetCoopEnv):
 
     done = False
     info = {1: 'Still training'}
+    case = 0
 
     if norm > 2.0 and self.ee_constraint_reward > 0.05:
       done = True
-      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
-              2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      info = {1: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
+              2: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
       case = 0
     elif norm > 2.0:
       done = True
-      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+      info = {1: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
       case = 1
     elif self.ee_constraint_reward > 0.05:
       done = True
-      info = {2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      info = {2: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
       case = 2
 
     return done, info, case

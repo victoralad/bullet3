@@ -3,9 +3,11 @@ import gym
 from tqdm import tqdm
 from agents import PPO
 from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
-
+from torch.utils.tensorboard import SummaryWriter
 
 def training(params, logdir, device):
+
+    writer = SummaryWriter(log_dir=logdir)
 
     agent = PPO(params, logdir, device)
 
@@ -20,7 +22,6 @@ def training(params, logdir, device):
         final_reward = 0
 
         st = env.reset()
-        # TODO: state to vector
 
         for t in range(params['episodes']):
             a, logprob = agent.get_action(st, test=False)
@@ -39,7 +40,8 @@ def training(params, logdir, device):
 
             st = st1
 
-        # TODO: write tensorboard
+        writer.add_scalar("Cumulative reward", cumulative_reward, int(epoch))
+        writer.add_scalar("Final reward", final_reward, int(epoch))
 
         agent.update(epoch)
 
