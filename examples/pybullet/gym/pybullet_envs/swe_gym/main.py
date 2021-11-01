@@ -38,6 +38,4 @@ if __name__ == '__main__':
 
     logdir = 'logs/'
 
-
-
     training(params, logdir, device)
