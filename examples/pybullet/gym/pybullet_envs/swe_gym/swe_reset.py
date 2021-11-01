@@ -150,15 +150,18 @@ class ResetCoopEnv(InitCoopEnv):
     # TODO (Victor): compute F_T = G_inv * F_o
     desired_obj_wrench = self.ComputeDesiredObjectWrench(p)
     grasp_matrix = self.ComputeGraspMatrix(p)
-    wrench = np.linalg.pinv(grasp_matrix).dot(desired_obj_wrench)
+    inv_grasp_matrix = np.linalg.pinv(grasp_matrix)
+    # grasp_matrix_sq = grasp_matrix.dot(grasp_matrix.T)
+    # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
+    wrench = inv_grasp_matrix.dot(desired_obj_wrench)
     if robot == self.kukaId_A:
       return wrench[:6]
     else:
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 5.5 * np.array([5, 5, 5, 2, 2, 2])
-    Kv = 5.2 * np.array([1.5, 1.5, 1.5, 0.2, 0.2, 0.2])
+    Kp = 0.6 * np.array([10, 10, 12, 3.5, 0.1, 0.1])
+    Kv = 0.5 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
     obj_pose_error = [0.0]*6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
@@ -169,6 +172,7 @@ class ResetCoopEnv(InitCoopEnv):
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
+    obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     return desired_obj_wrench
   
