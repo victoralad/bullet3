@@ -75,27 +75,47 @@ class StepCoopEnv(ResetCoopEnv):
     self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
     ee_constr_reward = -self.ee_constraint_reward
 
+    # get pose error of the bar and done condition
+    obj_pose_error = self.GetPoseError()
+    norm = np.linalg.norm(obj_pose_error)
+    done, info = self.CheckDone(norm)
+
+    # Naive reward definition
+    reward = -norm**2
     return reward
-  
-  def GetInfo(self, p):
-    done = False
-    info = {1: 'Still training'}
-    obj_pose_error = [0.0]*6
+
+  def GetPoseError(self):
+    obj_pose_error = [0.0] * 6
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
-    obj_vel_error = self.env_state["object_velocity"]
-    norm = np.linalg.norm(obj_pose_error)
+    for i in range(3):
+      obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
+    return obj_pose_error
+
+  def CheckDone(self, norm):
+
+    done = False
+    info = {1: 'Still training'}
 
     if norm > 2.0 and self.ee_constraint_reward > 0.05:
       done = True
-      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
-              2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      info = {1: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
+              2: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     elif norm > 2.0:
       done = True
-      info = {1 : 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+      info = {1: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
     elif self.ee_constraint_reward > 0.05:
       done = True
-      info = {2 : 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      info = {2: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+
+    return done, info
+
+  def GetInfo(self, p):
+
+    obj_pose_error = self.GetPoseError()
+    norm = np.linalg.norm(obj_pose_error)
+    done, info = self.CheckDone(norm)
+
     return done, info
   
   def GetConstraint(self, p):
@@ -215,12 +235,7 @@ class StepCoopEnv(ResetCoopEnv):
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
     Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
-    obj_pose_error = [0.0]*6
-    for i in range(len(obj_pose_error)):
-      obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
-    for i in range(3):
-      obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
-    
+    obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
