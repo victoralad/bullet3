@@ -32,9 +32,9 @@ class CoopEnv(gym.Env):
     high_action = np.array([max_force] * force_vec_len * num_robots)
     self.action_space = spaces.Box(low_action, high_action)
 
-    # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (ee_pose, desired_ee_pose)]
-    obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force] * force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * num_robots)
-    assert len(obs_space) == 30
+    # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_obj_pose, measured_ee_pose)]
+    obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force] * force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
+    assert len(obs_space) == 36
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
     self.desired_obj_pose = [0.0, 0.7, 0.4, 0.0, 0.0, 0.0]
