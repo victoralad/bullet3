@@ -77,11 +77,11 @@ class StepCoopEnv(ResetCoopEnv):
 
     # get pose error of the bar and done condition
     obj_pose_error = self.GetPoseError()
-    norm = np.linalg.norm(obj_pose_error)
-    done, info = self.CheckDone(norm)
+    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
+    done, info = self.CheckDone(obj_pose_error_norm)
 
     # Naive reward definition
-    reward = -norm**2
+    reward = -obj_pose_error_norm**2
     return reward
 
   def GetPoseError(self):
@@ -113,8 +113,8 @@ class StepCoopEnv(ResetCoopEnv):
   def GetInfo(self, p):
 
     obj_pose_error = self.GetPoseError()
-    norm = np.linalg.norm(obj_pose_error)
-    done, info = self.CheckDone(norm)
+    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
+    done, info = self.CheckDone(obj_pose_error_norm)
 
     return done, info
   
