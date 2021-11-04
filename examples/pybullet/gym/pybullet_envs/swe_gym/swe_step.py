@@ -25,12 +25,18 @@ class StepCoopEnv(ResetCoopEnv):
     self.constraint_set = False
     self.ee_constraint = 0
     self.ee_constraint_reward = 0 # This helps ensure that the grasp constraint is not violated.
+    self.desired_obj_wrench = None
+    self.desired_eeA_wrench = None
+    self.desired_eeB_wrench = None
+    self.action = None
+    self.grasp_matrix = None
     self.env_state = {}
     self.ComputeEnvState(p)
 
 
   def apply_action(self, action, p):
     assert len(action) == 12
+    self.action = np.array(action)
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
     computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
@@ -78,10 +84,15 @@ class StepCoopEnv(ResetCoopEnv):
     # get pose error of the bar and done condition
     obj_pose_error = self.GetPoseError()
     obj_pose_error_norm = np.linalg.norm(obj_pose_error)
-    done, info = self.CheckDone(obj_pose_error_norm)
 
-    # Naive reward definition
-    reward = -obj_pose_error_norm**2
+    # wrench_error_norm is the difference between the desired object wrench and the wrench obtained from the grasp matrix.
+    corrected_eeA_wrench = self.desired_eeA_wrench + self.action[:6]
+    corrected_eeB_wrench = self.desired_eeB_wrench + self.action[6:]
+    corrected_ee_wrench = np.concatenate((corrected_eeA_wrench, corrected_eeB_wrench))
+    wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
+    wrench_error_norm = np.linalg.norm(wrench_error)
+
+    reward = -(obj_pose_error_norm**2 + wrench_error_norm**2)
     return reward
 
   def GetPoseError(self):
@@ -228,8 +239,10 @@ class StepCoopEnv(ResetCoopEnv):
     #   count -= 1
     
     if robot == self.robotId_A:
+      self.desired_eeA_wrench = wrench[:6]
       return wrench[:6]
     else:
+      self.desired_eeB_wrench = wrench[6:]
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
@@ -246,6 +259,7 @@ class StepCoopEnv(ResetCoopEnv):
     obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
+    self.desired_obj_wrench = desired_obj_wrench
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
@@ -254,6 +268,7 @@ class StepCoopEnv(ResetCoopEnv):
     top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3)), np.eye(3), np.zeros((3, 3))))
     bottom_three_rows = np.hstack((self.skew(rp_A), np.eye(3), self.skew(rp_B), np.eye(3)))
     grasp_matrix = np.vstack((top_three_rows, bottom_three_rows))
+    self.grasp_matrix = grasp_matrix
     return grasp_matrix
 
   def skew(self, vector): 
