@@ -91,8 +91,10 @@ class StepCoopEnv(ResetCoopEnv):
     corrected_ee_wrench = np.concatenate((corrected_eeA_wrench, corrected_eeB_wrench))
     wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
     wrench_error_norm = np.linalg.norm(wrench_error)
+    # wrench_error_norm = 0.0
 
-    reward = -(obj_pose_error_norm**2 + wrench_error_norm**2)
+    beta = 1.0
+    reward = 4.0 -(obj_pose_error_norm**2 + beta * wrench_error_norm**2)
     return reward
 
   def GetPoseError(self):

@@ -21,7 +21,7 @@ plt.ylabel('cummulative-reward')
 plt.title('Plot of cumulative rewards per episode')
 
 # Saving the figure.
-plot_num = 2
+plot_num = 3
 plt.savefig("data/ppo2_rewards_plot_{}.jpg".format(plot_num))
 
 plt.show()
