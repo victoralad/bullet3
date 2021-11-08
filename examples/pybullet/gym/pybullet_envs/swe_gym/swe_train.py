@@ -23,7 +23,7 @@ class CustomPolicy(FeedForwardPolicy):
                                            net_arch=[32, 32, dict(pi=[32, 32, 12], vf=[32, 32, 1])],
                                            feature_extraction="mlp")
 
-model = PPO2(CustomPolicy, env, verbose=1)
+model = PPO2(CustomPolicy, env, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
 # Train the agent
 model.learn(total_timesteps=2000)
 

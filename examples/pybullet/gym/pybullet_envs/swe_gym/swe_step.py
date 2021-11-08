@@ -81,20 +81,19 @@ class StepCoopEnv(ResetCoopEnv):
     self.ee_constraint_reward = (curr_ee_constraint - self.ee_constraint)**2 # Squared constraint violation error
     ee_constr_reward = -self.ee_constraint_reward
 
-    # get pose error of the bar and done condition
+    # Get pose error of the bar and done condition
     obj_pose_error = self.GetPoseError()
     obj_pose_error_norm = np.linalg.norm(obj_pose_error)
 
-    # wrench_error_norm is the difference between the desired object wrench and the wrench obtained from the grasp matrix.
+    # Wrench_error_norm is the difference between the desired object wrench and the wrench obtained from the grasp matrix.
     corrected_eeA_wrench = self.desired_eeA_wrench + self.action[:6]
-    corrected_eeB_wrench = self.desired_eeB_wrench + self.action[6:]
+    corrected_eeB_wrench = self.desired_eeB_wrench
     corrected_ee_wrench = np.concatenate((corrected_eeA_wrench, corrected_eeB_wrench))
-    wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
-    wrench_error_norm = np.linalg.norm(wrench_error)
-    # wrench_error_norm = 0.0
-
-    beta = 1.0
-    reward = 4.0 -(obj_pose_error_norm**2 + beta * wrench_error_norm**2)
+    obj_wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
+    obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
+    
+    alpha = 1.0
+    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)
     return reward
 
   def GetPoseError(self):
