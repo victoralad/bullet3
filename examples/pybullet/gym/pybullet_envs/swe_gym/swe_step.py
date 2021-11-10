@@ -1,6 +1,7 @@
 import time
 import math
 import numpy as np
+import copy
 
 from datetime import datetime
 from attrdict import AttrDict
@@ -224,20 +225,6 @@ class StepCoopEnv(ResetCoopEnv):
     # grasp_matrix_sq = grasp_matrix.dot(grasp_matrix.T)
     # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
-
-    # print("------AAAAAA----------")
-    # self.ComputeEnvState(p)
-    # print(desired_obj_wrench)
-    # print(wrench[:6])
-    # print(wrench[6:])
-    # print(self.env_state["robot_A_ee_pose_obj_frame"])
-    # print(self.env_state["robot_B_ee_pose_obj_frame"])
-    # np.set_printoptions(linewidth=150)
-    # for row in grasp_matrix:
-    #   print(row)
-    # count = 10000000
-    # while count:
-    #   count -= 1
     
     if robot == self.robotId_A:
       self.desired_eeA_wrench = wrench[:6]

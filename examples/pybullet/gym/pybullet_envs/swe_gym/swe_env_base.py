@@ -76,7 +76,7 @@ class CoopEnv(gym.Env):
     self.reward_data[0] += [self.num_episodes]
     self.reward_data[1] += [avg_reward]
     self.sum_reward = 0.0
-    self.num_steps = 0.0
+    self.num_steps = 1
     
     self.reset_coop_env.ResetCoop(p)
     observation = self.reset_coop_env.GetObservation(p)
