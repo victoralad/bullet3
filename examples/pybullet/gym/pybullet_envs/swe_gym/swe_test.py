@@ -9,5 +9,7 @@ env = gym.make('CoopEnv-v0')
 obs = env.reset()
 while True:
     action, _states = model.predict(obs)
-    obs, rewards, dones, info = env.step(action)
+    obs, rewards, done, info = env.step(action)
+    if done and 3 in info:
+        env.reset()
     env.render()
