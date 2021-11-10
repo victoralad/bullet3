@@ -26,7 +26,7 @@ class CustomPolicy(FeedForwardPolicy):
 # model = PPO2(CustomPolicy, env, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
 model = PPO2(CustomPolicy, env, verbose=1)
 # Train the agent
-model.learn(total_timesteps=10000)
+model.learn(total_timesteps=2000)
 
 print("")
 print("---------- Done training -----------------")

@@ -93,7 +93,7 @@ class StepCoopEnv(ResetCoopEnv):
     obj_wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
     obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
     
-    alpha = 1.0
+    alpha = 0.01
     reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)
     return reward
 

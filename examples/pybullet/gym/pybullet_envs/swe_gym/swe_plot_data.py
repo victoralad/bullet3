@@ -15,13 +15,14 @@ plt.plot(reward_data[0], reward_data[1])
 # naming the x axis
 plt.xlabel('num-episodes')
 # naming the y axis
-plt.ylabel('cummulative-reward')
+plt.ylabel('average-reward')
   
 # giving a title to my graph
-plt.title('Plot of cumulative rewards per episode')
+# Average reward is the total reward obtained in an episode divided by the total number of steps in that episode.
+plt.title('Plot of average reward per episode')
 
 # Saving the figure.
-plot_num = 3
+plot_num = 7
 plt.savefig("data/ppo2_rewards_plot_{}.jpg".format(plot_num))
 
 plt.show()
