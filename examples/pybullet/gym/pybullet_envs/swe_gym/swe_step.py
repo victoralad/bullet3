@@ -105,29 +105,32 @@ class StepCoopEnv(ResetCoopEnv):
       obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
     return obj_pose_error
 
-  def CheckDone(self, norm):
+  def CheckDone(self, norm, num_steps):
 
     done = False
     info = {1: 'Still training'}
 
-    if norm > 2.0 and self.ee_constraint_reward > 0.05:
+    if num_steps > 100:
       done = True
-      info = {1: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
-              2: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      info = {1: 'Episode completed successfully.'}
+    elif norm > 2.0 and self.ee_constraint_reward > 0.05:
+      done = True
+      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
+              3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     elif norm > 2.0:
       done = True
-      info = {1: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
     elif self.ee_constraint_reward > 0.05:
       done = True
-      info = {2: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+      info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
 
     return done, info
 
-  def GetInfo(self, p):
+  def GetInfo(self, p, num_steps):
 
     obj_pose_error = self.GetPoseError()
     obj_pose_error_norm = np.linalg.norm(obj_pose_error)
-    done, info = self.CheckDone(obj_pose_error_norm)
+    done, info = self.CheckDone(obj_pose_error_norm, num_steps)
 
     return done, info
   

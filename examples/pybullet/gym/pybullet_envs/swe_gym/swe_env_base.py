@@ -55,10 +55,10 @@ class CoopEnv(gym.Env):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
     reward = self.step_coop_env.GetReward(p)
-    done, info = self.step_coop_env.GetInfo(p)
+    done, info = self.step_coop_env.GetInfo(p, self.num_steps)
     self.sum_reward += reward
     self.num_steps += 1
-    self.time_step +=1
+    self.time_step += 1
     print("---------------------------- Step {} ----------------------------".format(self.time_step))
     print("Observation:", observation)
     print("")
