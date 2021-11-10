@@ -5,6 +5,7 @@ import gym
 from gym import spaces
 import pybullet as p
 import pybullet_data
+import copy
 
 import numpy as np
 import time
@@ -49,15 +50,16 @@ class CoopEnv(gym.Env):
 
     self.reward_data = [[0.0], [0.0]]
     self.sum_reward = 0.0
-    self.num_steps = 1
+    self.overall_reward_sum = 0.0
+    self.num_steps_per_episode = 1
 
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
     reward = self.step_coop_env.GetReward(p)
-    done, info = self.step_coop_env.GetInfo(p, self.num_steps)
+    done, info = self.step_coop_env.GetInfo(p, self.num_steps_per_episode)
     self.sum_reward += reward
-    self.num_steps += 1
+    self.num_steps_per_episode += 1
     self.time_step += 1
     print("---------------------------- Step {} ----------------------------".format(self.time_step))
     print("Observation:", observation)
@@ -72,11 +74,12 @@ class CoopEnv(gym.Env):
   def reset(self):
     print("------------- Resetting environment, Episode: {} --------------".format(self.num_episodes))
     self.num_episodes += 1.0
-    avg_reward = self.sum_reward / self.num_steps
+    avg_reward = self.sum_reward / self.num_steps_per_episode
     self.reward_data[0] += [self.num_episodes]
     self.reward_data[1] += [avg_reward]
+    self.overall_reward_sum += copy.copy(self.sum_reward)
     self.sum_reward = 0.0
-    self.num_steps = 1
+    self.num_steps_per_episode = 1
     
     self.reset_coop_env.ResetCoop(p)
     observation = self.reset_coop_env.GetObservation(p)

@@ -26,13 +26,19 @@ class CustomPolicy(FeedForwardPolicy):
 # model = PPO2(CustomPolicy, env, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
 model = PPO2(CustomPolicy, env, verbose=1)
 # Train the agent
-model.learn(total_timesteps=2000)
+total_timesteps = 3000
+model.learn(total_timesteps=total_timesteps)
 
 print("")
 print("---------- Done training -----------------")
 
 model.save("ppo_coop_manip")
 del model
+
+# time_step is the total time steps for the entire simulation.
+summary_reward_data = [env.time_step, env.overall_reward_sum, env.overall_reward_sum / env.time_step]
+with open('data/summary_reward.data', 'wb') as filehandle:
+    pickle.dump(summary_reward_data, filehandle)
 
 with open('data/reward.data', 'wb') as filehandle:
     pickle.dump(env.reward_data, filehandle)

@@ -1,6 +1,10 @@
 import pickle
 import matplotlib.pyplot as plt
 
+with open('data/summary_reward.data', 'rb') as filehandle:
+    # read the data as binary data stream
+    summary_reward_data = pickle.load(filehandle)
+
 with open('data/reward.data', 'rb') as filehandle:
     # read the data as binary data stream
     reward_data = pickle.load(filehandle)
@@ -9,7 +13,11 @@ with open('data/reward.data', 'rb') as filehandle:
 reward_data[1][0] = min(reward_data[1])
 reward_data[1][1] = reward_data[1][0]
 
-print(reward_data)
+# Get the reward data summary.
+print(summary_reward_data)
+overall_avg_reward = summary_reward_data[2]
+
+# print(reward_data)
 
 plt.plot(reward_data[0], reward_data[1])
 # naming the x axis
@@ -19,10 +27,10 @@ plt.ylabel('average-reward')
   
 # giving a title to my graph
 # Average reward is the total reward obtained in an episode divided by the total number of steps in that episode.
-plt.title('Plot of average reward per episode (NO RL)')
+plt.title('Plot of avg reward per episode \n num_time_steps = {}, Overall avg reward = {:.3f}'.format(summary_reward_data[0], summary_reward_data[2]))
 
 # Saving the figure.
-plot_num = 8
+plot_num = 10
 plt.savefig("data/ppo2_rewards_plot_{}.jpg".format(plot_num))
 
 plt.show()
