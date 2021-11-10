@@ -19,10 +19,10 @@ plt.ylabel('average-reward')
   
 # giving a title to my graph
 # Average reward is the total reward obtained in an episode divided by the total number of steps in that episode.
-plt.title('Plot of average reward per episode')
+plt.title('Plot of average reward per episode (NO RL)')
 
 # Saving the figure.
-plot_num = 7
+plot_num = 8
 plt.savefig("data/ppo2_rewards_plot_{}.jpg".format(plot_num))
 
 plt.show()
