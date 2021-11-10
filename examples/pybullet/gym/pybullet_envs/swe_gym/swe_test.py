@@ -10,6 +10,7 @@ obs = env.reset()
 while True:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
+    # grasp fail is mapped to the number 3 in the info dictionary.
     if done and 3 in info:
         env.reset()
     env.render()
