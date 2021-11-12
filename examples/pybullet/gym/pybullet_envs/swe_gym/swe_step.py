@@ -108,9 +108,10 @@ class StepCoopEnv(ResetCoopEnv):
   def CheckDone(self, norm, num_steps):
 
     done = False
-    info = {1: 'Still training'}
+    info = {0: 'Still training'}
+    horizon = 200
 
-    if num_steps > 100:
+    if num_steps > horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
     elif norm > 2.0 and self.ee_constraint_reward > 0.05:
