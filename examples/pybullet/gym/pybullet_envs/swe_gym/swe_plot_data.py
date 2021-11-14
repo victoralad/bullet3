@@ -29,7 +29,7 @@ plt.ylabel('average-reward')
 plt.title('Plot of running avg reward \n num_time_steps = {}, Overall avg reward = {:.3f}'.format(summary_reward_data[0], summary_reward_data[2]))
 
 # Saving the figure.
-plot_num = 13
+plot_num = 14
 plt.savefig("data/ppo2_rewards_plot_{}.jpg".format(plot_num))
 
 plt.show()
