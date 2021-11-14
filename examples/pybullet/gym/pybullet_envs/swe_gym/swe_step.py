@@ -31,6 +31,9 @@ class StepCoopEnv(ResetCoopEnv):
     self.desired_eeB_wrench = None
     self.action = None
     self.grasp_matrix = None
+    self.mean_dist = [0.0]*6
+    cov_dist_vec = [1.2]*6
+    self.cov_dist = np.diag(cov_dist_vec)
     self.env_state = {}
     self.ComputeEnvState(p)
 
@@ -234,7 +237,9 @@ class StepCoopEnv(ResetCoopEnv):
       self.desired_eeA_wrench = wrench[:6]
       return wrench[:6]
     else:
-      self.desired_eeB_wrench = wrench[6:]
+      disturbance = x = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
+      print("------disturbance ----------", disturbance)
+      self.desired_eeB_wrench = wrench[6:] + disturbance
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
