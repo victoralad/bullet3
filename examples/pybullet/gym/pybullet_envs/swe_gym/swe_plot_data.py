@@ -26,11 +26,11 @@ plt.ylabel('average-reward')
   
 # giving a title to my graph
 # (temp. wrong) Average reward is the total reward obtained in an episode divided by the total number of steps in that episode.
-plt.title('Plot of running avg reward \n num_time_steps = {}, Overall avg reward = {:.3f}'.format(summary_reward_data[0], summary_reward_data[2]))
+plt.title('Plot of running avg reward (NO RL) \n num_time_steps = {}, Overall avg reward = {:.3f}'.format(summary_reward_data[0], summary_reward_data[2]))
 
 # Saving the figure.
-plot_num = 14
-plt.savefig("data/ppo2_rewards_plot_{}.jpg".format(plot_num))
+plot_num = 15
+plt.savefig("data/ppo2_rewards_plot_{}_No_RL.jpg".format(plot_num))
 
 plt.show()
 

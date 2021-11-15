@@ -93,7 +93,7 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Wrench_error_norm is the difference between the desired object wrench and the wrench obtained from the grasp matrix.
     corrected_eeA_wrench = self.desired_eeA_wrench + self.action[:6]
-    corrected_eeB_wrench = self.desired_eeB_wrench
+    corrected_eeB_wrench = self.desired_eeB_wrench + self.action[6:]
     corrected_ee_wrench = np.concatenate((corrected_eeA_wrench, corrected_eeB_wrench))
     obj_wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
     obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
@@ -102,7 +102,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.terminal_reward = 0.0
     if num_steps > self.horizon:
       self.terminal_reward = 8.0
-    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2) + self.terminal_reward
+    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)# + self.terminal_reward
     return reward
 
   def GetPoseError(self):
