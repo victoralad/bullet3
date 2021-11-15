@@ -34,6 +34,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.mean_dist = [0.0]*6
     cov_dist_vec = [1.2]*6
     self.cov_dist = np.diag(cov_dist_vec)
+    self.terminal_reward = 0.0
+    self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
 
@@ -74,7 +76,7 @@ class StepCoopEnv(ResetCoopEnv):
     assert len(self.model_input) == 36
     return self.model_input
   
-  def GetReward(self, p):
+  def GetReward(self, p, num_steps):
     reward = 0.0
 
     # Reward to force the agent to try to maintain a rigid grasp. @Alberta, you may ignore this when computing the overall reward.
@@ -97,7 +99,10 @@ class StepCoopEnv(ResetCoopEnv):
     obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
     
     alpha = 0.01
-    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)
+    self.terminal_reward = 0.0
+    if num_steps > self.horizon:
+      self.terminal_reward = 8.0
+    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2) + self.terminal_reward
     return reward
 
   def GetPoseError(self):
@@ -114,7 +119,7 @@ class StepCoopEnv(ResetCoopEnv):
     info = {0: 'Still training'}
     horizon = 200
 
-    if num_steps > horizon:
+    if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
     elif norm > 2.0 and self.ee_constraint_reward > 0.05:
@@ -238,7 +243,7 @@ class StepCoopEnv(ResetCoopEnv):
       return wrench[:6]
     else:
       disturbance = x = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      print("------disturbance ----------", disturbance)
+      # print("------disturbance ----------", disturbance)
       self.desired_eeB_wrench = wrench[6:] + disturbance
       return wrench[6:]
   
@@ -250,9 +255,6 @@ class StepCoopEnv(ResetCoopEnv):
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
-    # print("obj_pose_error")
-    # print(obj_pose_error)
-    # print(self.env_state["object_pose"])
     obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
