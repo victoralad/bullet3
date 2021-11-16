@@ -103,7 +103,7 @@ class StepCoopEnv(ResetCoopEnv):
     if num_steps > self.horizon:
       self.terminal_reward = 8.0
     reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)# + self.terminal_reward
-    return reward
+    return reward, obj_pose_error_norm
 
   def GetPoseError(self):
     obj_pose_error = [0.0] * 6
