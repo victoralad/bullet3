@@ -52,13 +52,14 @@ class CoopEnv(gym.Env):
     self.sum_reward = 0.0
     self.overall_reward_sum = 0.0
     self.num_steps_per_episode = 1
-    self.obj_pose_error_norm = 2.0 # This is the bound that resets the simulation when the obj_pose_error_norm exceeds this value
-    self.obj_pose_error_data = [[0.0], [self.obj_pose_error_norm]]
+    self.obj_pose_error_norm_sum = 2.0 # This is the bound that resets the simulation when the obj_pose_error_norm exceeds this value
+    self.obj_pose_error_data = [[0.0], [self.obj_pose_error_norm_sum]]
 
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
-    reward, self.obj_pose_error_norm = self.step_coop_env.GetReward(p, self.num_steps_per_episode)
+    reward, obj_pose_error_norm = self.step_coop_env.GetReward(p, self.num_steps_per_episode)
+    self.obj_pose_error_norm_sum += obj_pose_error_norm
     done, info = self.step_coop_env.GetInfo(p, self.num_steps_per_episode)
     self.sum_reward += reward
     self.num_steps_per_episode += 1
@@ -68,7 +69,7 @@ class CoopEnv(gym.Env):
     self.reward_data[1] += [self.sum_reward / self.time_step]
     self.overall_reward_sum = copy.copy(self.sum_reward)
     self.obj_pose_error_data[0] += [self.time_step]
-    self.obj_pose_error_data[1] += [self.obj_pose_error_norm]
+    self.obj_pose_error_data[1] += [self.obj_pose_error_norm_sum / self.time_step]
     print("Observation:", observation)
     print("")
     print("Action:", action)
