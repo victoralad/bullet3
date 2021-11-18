@@ -92,17 +92,17 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error_norm = np.linalg.norm(obj_pose_error)
 
     # Wrench_error_norm is the difference between the desired object wrench and the wrench obtained from the grasp matrix.
-    corrected_eeA_wrench = self.desired_eeA_wrench + self.action[:6]
-    corrected_eeB_wrench = self.desired_eeB_wrench + self.action[6:]
+    corrected_eeA_wrench = self.desired_eeA_wrench# + self.action[:6]
+    corrected_eeB_wrench = self.desired_eeB_wrench# + self.action[6:]
     corrected_ee_wrench = np.concatenate((corrected_eeA_wrench, corrected_eeB_wrench))
     obj_wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
     obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
     
-    alpha = 0.0
+    alpha = 0.01
     self.terminal_reward = 0.0
     if num_steps > self.horizon:
       self.terminal_reward = 10.0
-    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)# + self.terminal_reward
+    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2) + self.terminal_reward
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
@@ -174,7 +174,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
-      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
     else:
       desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
