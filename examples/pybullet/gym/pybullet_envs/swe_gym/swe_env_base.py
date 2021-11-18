@@ -29,8 +29,8 @@ class CoopEnv(gym.Env):
     num_robots = 2
     force_vec_len = 6
     max_force = 0.5
-    low_action = np.array([-max_force] * force_vec_len * num_robots)
-    high_action = np.array([max_force] * force_vec_len * num_robots)
+    low_action = np.array([-max_force] * force_vec_len)
+    high_action = np.array([max_force] * force_vec_len)
     self.action_space = spaces.Box(low_action, high_action)
 
     # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_obj_pose, measured_ee_pose)]
@@ -52,7 +52,7 @@ class CoopEnv(gym.Env):
     self.sum_reward = 0.0
     self.overall_reward_sum = 0.0
     self.num_steps_per_episode = 1
-    self.obj_pose_error_norm_sum = 2.0 # This is the bound that resets the simulation when the obj_pose_error_norm exceeds this value
+    self.obj_pose_error_norm_sum = 0.0
     self.obj_pose_error_data = [[0.0], [self.obj_pose_error_norm_sum]]
 
   def step(self, action):

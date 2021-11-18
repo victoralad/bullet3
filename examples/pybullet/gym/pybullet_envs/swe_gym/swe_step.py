@@ -41,7 +41,7 @@ class StepCoopEnv(ResetCoopEnv):
 
 
   def apply_action(self, action, p):
-    assert len(action) == 12
+    assert len(action) == 6
     self.action = np.array(action)
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
@@ -90,19 +90,11 @@ class StepCoopEnv(ResetCoopEnv):
     # Get pose error of the bar and done condition
     obj_pose_error = self.GetPoseError()
     obj_pose_error_norm = np.linalg.norm(obj_pose_error)
-
-    # Wrench_error_norm is the difference between the desired object wrench and the wrench obtained from the grasp matrix.
-    corrected_eeA_wrench = self.desired_eeA_wrench# + self.action[:6]
-    corrected_eeB_wrench = self.desired_eeB_wrench# + self.action[6:]
-    corrected_ee_wrench = np.concatenate((corrected_eeA_wrench, corrected_eeB_wrench))
-    obj_wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
-    obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
     
-    alpha = 0.01
     self.terminal_reward = 0.0
     if num_steps > self.horizon:
       self.terminal_reward = 10.0
-    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2) + self.terminal_reward
+    reward = 4.0 -obj_pose_error_norm**2 + self.terminal_reward
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
@@ -117,7 +109,6 @@ class StepCoopEnv(ResetCoopEnv):
 
     done = False
     info = {0: 'Still training'}
-    horizon = 200
 
     if num_steps > self.horizon:
       done = True
@@ -174,7 +165,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
-      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
     else:
       desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
@@ -242,7 +233,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.desired_eeA_wrench = wrench[:6]
       return wrench[:6]
     else:
-      disturbance = x = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
+      disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       # print("------disturbance ----------", disturbance)
       self.desired_eeB_wrench = wrench[6:] + disturbance
       return wrench[6:]
