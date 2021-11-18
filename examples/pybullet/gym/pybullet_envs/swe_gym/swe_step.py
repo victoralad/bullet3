@@ -98,11 +98,11 @@ class StepCoopEnv(ResetCoopEnv):
     obj_wrench_error = self.desired_obj_wrench - self.grasp_matrix.dot(corrected_ee_wrench)
     obj_wrench_error_norm = np.linalg.norm(obj_wrench_error)
     
-    alpha = 0.01
+    alpha = 0.0
     self.terminal_reward = 0.0
     if num_steps > self.horizon:
       self.terminal_reward = 10.0
-    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2) + self.terminal_reward
+    reward = 4.0 -(obj_pose_error_norm**2 + alpha * obj_wrench_error_norm**2)# + self.terminal_reward
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
