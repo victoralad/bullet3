@@ -52,7 +52,7 @@ class CoopEnv(gym.Env):
     self.sum_reward = 0.0
     self.overall_reward_sum = 0.0
     self.num_steps_per_episode = 1
-    self.obj_pose_error_norm_sum = 2.0 # This is the bound that resets the simulation when the obj_pose_error_norm exceeds this value
+    self.obj_pose_error_norm_sum = 0.0
     self.obj_pose_error_data = [[0.0], [self.obj_pose_error_norm_sum]]
 
   def step(self, action):
