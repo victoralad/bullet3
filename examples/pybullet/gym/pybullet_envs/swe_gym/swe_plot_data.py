@@ -54,7 +54,7 @@ plt.ylabel('avg-obj-pose-error-norm')
 plt.title('Plot of average object pose error norm (NO RL) \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
 
 # Saving the figure.
-plot_num = 21
+plot_num = 22
 plt.savefig("data/ppo2_rewards_plot_NO_RL{}.jpg".format(plot_num))
 
 plt.show()
