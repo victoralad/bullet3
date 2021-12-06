@@ -175,8 +175,12 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
+      self.desired_eeA_wrench = desired_ee_wrench
     else:
-      desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
+      disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
+      # print("------disturbance ----------", disturbance)
+      desired_ee_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p) + disturbance
+      self.desired_eeB_wrench = desired_ee_wrench
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
@@ -239,13 +243,9 @@ class StepCoopEnv(ResetCoopEnv):
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
     
     if robot == self.robotId_A:
-      self.desired_eeA_wrench = wrench[:6]
-      return self.desired_eeA_wrench
+      return wrench[:6]
     else:
-      disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      # print("------disturbance ----------", disturbance)
-      self.desired_eeB_wrench = wrench[6:] + disturbance
-      return self.desired_eeB_wrench
+      return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
