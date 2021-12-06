@@ -240,9 +240,9 @@ class StepCoopEnv(ResetCoopEnv):
     
     if robot == self.robotId_A:
       self.desired_eeA_wrench = wrench[:6]
-      return wrench[:6]
+      return self.desired_eeA_wrench
     else:
-      disturbance = x = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
+      disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       # print("------disturbance ----------", disturbance)
       self.desired_eeB_wrench = wrench[6:] + disturbance
       return self.desired_eeB_wrench
