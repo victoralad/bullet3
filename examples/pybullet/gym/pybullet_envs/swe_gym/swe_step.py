@@ -245,7 +245,7 @@ class StepCoopEnv(ResetCoopEnv):
       disturbance = x = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       # print("------disturbance ----------", disturbance)
       self.desired_eeB_wrench = wrench[6:] + disturbance
-      return wrench[6:]
+      return self.desired_eeB_wrench
   
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
