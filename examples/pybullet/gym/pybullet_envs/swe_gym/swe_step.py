@@ -32,7 +32,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.action = None
     self.grasp_matrix = None
     self.mean_dist = [0.0]*6
-    cov_dist_vec = [0.1]*6
+    cov_dist_vec = [0.05]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
     self.horizon = 200
@@ -165,7 +165,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
-      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
       self.desired_eeA_wrench = desired_ee_wrench
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
