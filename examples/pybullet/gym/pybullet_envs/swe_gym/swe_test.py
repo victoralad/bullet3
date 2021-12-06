@@ -8,7 +8,7 @@ model = PPO2.load("ppo_coop_manip")
 
 env = gym.make('CoopEnv-v0')
 obs = env.reset()
-max_test_steps = 10000
+max_test_steps = 500
 while env.time_step < max_test_steps:
     action, _states = model.predict(obs)
     obs, rewards, done, info = env.step(action)
