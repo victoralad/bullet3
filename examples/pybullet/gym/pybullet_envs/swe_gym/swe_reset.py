@@ -26,21 +26,21 @@ class ResetCoopEnv(InitCoopEnv):
     # robot_B_reset = [2.470787979046169, 1.5992683071619733, -1.3190493822244016, -1.3970919589354867, 1.5466399312306398, 1.8048923566089303,
     #  1.8741340429221176, 0.04180727854471872, 0.03980317811581496, 0.0, 0.0, 0.0]
     
-    robot_A_reset = [0.10073155, 0.74246903, -0.03992083, -1.61260852, -0.10303224, 2.39708345, -0.80150425, 0.01762362413070885, 0.017396558579594615, 0.0, 0.0, 0.0]
-    robot_B_reset = [0.10073155, 0.74246903, -0.03992083, -1.61260852, -0.10303224, 2.39708345, -0.60150425, 0.04180727854471872, 0.03980317811581496, 0.0, 0.0, 0.0]
+    robot_A_reset = [0.10073155, 0.86246903, -0.03992083, -1.61260852, -0.10303224, 2.39708345, -0.80150425, 0.0162362413070885, 0.047396558579594615, 0.04, 0.04, 0.0]
+    robot_B_reset = [0.10073155, 0.86246903, -0.03992083, -1.61260852, -0.10303224, 2.39708345, -0.60150425, 0.0180727854471872, 0.05980317811581496, 0.04, 0.04, 0.0]
 
     for i in range(self.totalNumJoints):
       p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
-    
-    # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
-    for i in range(20):
-      self.gripper(self.kukaId_A, 0.08, p)
-      self.gripper(self.kukaId_B, 0.08, p)
-      p.stepSimulation()
-    
-    # while 1:
-    #   a = 1
+
+
+    # # Open gripper
+    # # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
+    # for i in range(20):
+    #   self.gripper(self.kukaId_A, 0.08, p)
+    #   self.gripper(self.kukaId_B, 0.08, p)
+    #   p.stepSimulation()
+
 
     # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
     for i in range(20):
@@ -48,6 +48,9 @@ class ResetCoopEnv(InitCoopEnv):
       self.gripper(self.kukaId_B, 0.02, p)
       p.stepSimulation()
     
+    # while(1):
+    #   a = 1
+
     # Move the object away from the floor after grasping it
 
     # joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
@@ -57,7 +60,7 @@ class ResetCoopEnv(InitCoopEnv):
     joint_pos_B = [0.10073155, -0.14246903, -0.33992083, -2.61260852, -0.20303224, 2.39708345, -0.80150425]
 
 
-    for i in range(1):
+    for i in range(10000):
       if (self.useSimulation):
         for i in range(self.numJoints):
           p.setJointMotorControl2(bodyIndex=self.kukaId_A,
@@ -80,8 +83,8 @@ class ResetCoopEnv(InitCoopEnv):
                                   velocityGain=0.5,
                                   maxVelocity=0.01)
       p.stepSimulation()
-    while(1):
-      a = 1
+    # while(1):
+    #   a = 1
 
   # Controls the gripper (open and close commands)
   def gripper(self, robot, finger_target, p):
