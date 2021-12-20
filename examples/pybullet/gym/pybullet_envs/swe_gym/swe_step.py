@@ -38,6 +38,11 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
+    self.antag_cartesian_vel = np.load('antagonist/test_control.npy')
+    self.antag_joint_pos = np.load('antagonist/test_joints.npy')
+    self.antag_data_idx = 0
+    self.reset_eps = False
+    self.use_hard_data = True
 
 
   def apply_action(self, action, p):
@@ -47,21 +52,47 @@ class StepCoopEnv(ResetCoopEnv):
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
     computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
     
-    if (self.useSimulation):
-      for i in range(200):
-        for i in range(self.numJoints):
-          p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
-          p.setJointMotorControl2(bodyIndex=self.robotId_A,
-                                jointIndex=i,
-                                controlMode=p.TORQUE_CONTROL,
-                                force=computed_joint_torques_robot_A[i])
+    if self.use_hard_data:
+      if (self.useSimulation):
+        for i in range(200):
+          for i in range(self.numJoints):
+            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(bodyIndex=self.robotId_A,
+                                  jointIndex=i,
+                                  controlMode=p.TORQUE_CONTROL,
+                                  force=computed_joint_torques_robot_A[i])
 
-          p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.5)
-          p.setJointMotorControl2(bodyIndex=self.robotId_B,
-                                jointIndex=i,
-                                controlMode=p.TORQUE_CONTROL,
-                                force=computed_joint_torques_robot_B[i])
-        p.stepSimulation()
+            p.setJointMotorControl2(bodyIndex=self.robotId_B,
+                                    jointIndex=i,
+                                    controlMode=p.POSITION_CONTROL,
+                                    targetPosition=self.antag_joint_pos[self.antag_data_idx][i],
+                                    targetVelocity=0,
+                                    force=100,
+                                    positionGain=0.1,
+                                    velocityGain=0.5,
+                                    maxVelocity=0.01)
+          p.stepSimulation()
+        if self.antag_data_idx < len(self.antag_joint_pos) - 1:
+          self.antag_data_idx += 1
+        if self.reset_eps:
+          self.antag_data_idx = 0
+
+    else:
+      if (self.useSimulation):
+        for i in range(200):
+          for i in range(self.numJoints):
+            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(bodyIndex=self.robotId_A,
+                                  jointIndex=i,
+                                  controlMode=p.TORQUE_CONTROL,
+                                  force=computed_joint_torques_robot_A[i])
+
+            p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(bodyIndex=self.robotId_B,
+                                  jointIndex=i,
+                                  controlMode=p.TORQUE_CONTROL,
+                                  force=computed_joint_torques_robot_B[i])
+          p.stepSimulation()
   
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
@@ -123,7 +154,8 @@ class StepCoopEnv(ResetCoopEnv):
     elif self.ee_constraint_reward > 0.05:
       done = True
       info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-
+    
+    self.reset_eps = done
     return done, info
 
   def GetInfo(self, p, num_steps):
@@ -165,7 +197,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
-      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))# + np.array(action[:6])
+      desired_ee_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p)) + np.array(action[:6])
       self.desired_eeA_wrench = desired_ee_wrench
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
