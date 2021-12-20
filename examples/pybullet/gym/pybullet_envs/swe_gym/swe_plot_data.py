@@ -51,10 +51,10 @@ plt.xlabel('num-time-steps')
 plt.ylabel('avg-obj-pose-error-norm')
   
 # giving a title to my graph
-plt.title('Plot of average object pose error norm (NO RL) \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
+plt.title('Plot of average object pose error norm \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
 
 # Saving the figure.
-plot_num = 11
-plt.savefig("data/ppo2_obj_error_norm_plot_{}_NO_RL.jpg".format(plot_num))
+plot_num = 12
+plt.savefig("data/ppo2_obj_error_norm_plot_{}.jpg".format(plot_num))
 
 plt.show()
