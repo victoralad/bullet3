@@ -9,6 +9,8 @@ from collections import namedtuple
 
 from swe_reset import ResetCoopEnv
 
+np.random.seed(0)
+
 class StepCoopEnv(ResetCoopEnv):
 
   def __init__(self, robots, grasped_object, ft_id, desired_obj_pose, p):
@@ -32,7 +34,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.action = None
     self.grasp_matrix = None
     self.mean_dist = [0.0]*6
-    cov_dist_vec = [0.05]*6
+    cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
     self.horizon = 200
