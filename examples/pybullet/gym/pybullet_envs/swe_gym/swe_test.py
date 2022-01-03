@@ -18,5 +18,7 @@ while env.time_step < max_test_steps:
             env.reset()
     env.render()
 
-with open('data/obj_pose_error.data', 'wb') as filehandle:
+folder = "rl"
+exp_run = 2
+with open('data/{}/obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
     pickle.dump(env.obj_pose_error_data, filehandle)
