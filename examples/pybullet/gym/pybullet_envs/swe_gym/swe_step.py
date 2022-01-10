@@ -2,6 +2,7 @@ import time
 import math
 import numpy as np
 import copy
+import random
 
 from datetime import datetime
 from attrdict import AttrDict
@@ -38,9 +39,18 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_cartesian_vel = np.load('antagonist/test_control_3.npy')
-    self.antag_joint_pos = np.load('antagonist/test_joints_3.npy')
+    self.isTrain = True
+    if self.isTrain:
+      self.traj_idx_list = list(range(40))
+      random.shuffle(self.traj_idx_list)
+      self.antag_joint_pos_list = [None]*40
+      for i in range(40):
+        self.antag_joint_pos_list[i] = np.load('antagonist/data/{}_joints.npy'.format(i+11))
+      self.antag_joint_pos = self.antag_joint_pos_list[0]
+    else:
+      self.antag_joint_pos = np.load('antagonist/data/01_joints.npy')
     self.antag_data_idx = 0
+    self.traj_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
 
@@ -72,10 +82,18 @@ class StepCoopEnv(ResetCoopEnv):
                                     velocityGain=0.5,
                                     maxVelocity=0.01)
           p.stepSimulation()
+        # If the antagonist trajectory is not done playing, step forward through the trajectory.
         if self.antag_data_idx < len(self.antag_joint_pos) - 1:
           self.antag_data_idx += 1
+        # If the episode is completed
         if self.reset_eps:
+          # Reset the index of the trajectory play to the beginning.
           self.antag_data_idx = 0
+          # Switch to a new trajectory.
+          self.traj_idx += 1
+          # When the list of trajectories is exhausted, go back to the beginning of the list.
+          self.antag_joint_pos = self.antag_joint_pos_list[self.traj_idx % len(self.traj_idx_list)]
+        print("------#######################-----------------------", self.traj_idx % len(self.traj_idx_list))
 
     else:
       if (self.useSimulation):
