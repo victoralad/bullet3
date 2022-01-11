@@ -88,17 +88,18 @@ class StepCoopEnv(ResetCoopEnv):
         if self.reset_eps:
           # Reset the index of the trajectory play to the beginning.
           self.antag_data_idx = 0
-          # Switch to a new trajectory.
-          if self.traj_idx < len(self.traj_idx_list) - 1:
-            self.traj_idx += 1
-          else:
-            # When the list of trajectories is exhausted, reshuffle the trajectory list and go back to the beginning of the list.
-            random.shuffle(self.traj_idx_list)
-            self.traj_idx = 0
-          
-          idx = self.traj_idx_list[self.traj_idx]
-          self.antag_joint_pos = self.antag_joint_pos_list[idx]
-          print("-------------################--------------", idx)
+          if self.isTrain:
+            # Switch to a new trajectory.
+            if self.traj_idx < len(self.traj_idx_list) - 1:
+              self.traj_idx += 1
+            else:
+              # When the list of trajectories is exhausted, reshuffle the trajectory list and go back to the beginning of the list.
+              random.shuffle(self.traj_idx_list)
+              self.traj_idx = 0
+            
+            idx = self.traj_idx_list[self.traj_idx]
+            self.antag_joint_pos = self.antag_joint_pos_list[idx]
+            print("-------------################--------------", idx)
 
     else:
       if (self.useSimulation):
@@ -221,7 +222,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.desired_eeA_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       self.desired_eeB_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
