@@ -94,7 +94,7 @@ class StepCoopEnv(ResetCoopEnv):
               self.traj_idx += 1
             else:
               # When the list of trajectories is exhausted, reshuffle the trajectory list and go back to the beginning of the list.
-              random.shuffle(self.traj_idx_list)
+              # random.shuffle(self.traj_idx_list)
               self.traj_idx = 0
             
             idx = self.traj_idx_list[self.traj_idx]

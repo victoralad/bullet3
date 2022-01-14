@@ -60,7 +60,7 @@ class ResetCoopEnv(InitCoopEnv):
     joint_pos_B = [0.10073155, -0.14246903, -0.33992083, -2.61260852, -0.20303224, 2.39708345, -0.80150425]
 
 
-    for i in range(20):
+    for i in range(40):
       if (self.useSimulation):
         for i in range(self.numJoints):
           p.setJointMotorControl2(bodyIndex=self.kukaId_A,
