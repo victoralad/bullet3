@@ -35,10 +35,10 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 200
+    self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/14_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
