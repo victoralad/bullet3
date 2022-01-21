@@ -38,10 +38,13 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/14_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
+
+    self.prev_obj_pose = [0, 0, 0]
+    self.hasPrevPose = 1
 
 
   def apply_action(self, action, p):
@@ -103,6 +106,17 @@ class StepCoopEnv(ResetCoopEnv):
     self.model_input = np.append(self.model_input, np.array(self.env_state["object_pose"]))
     self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
+
+    if (self.hasPrevPose):
+      #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
+      #use 0 for no-removal
+      trailDuration = 10000
+      p.addUserDebugLine((self.desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
+      # p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
+      # self.prev_obj_pose = (self.env_state["object_pose"])[:3]
+      # self.prevPose1_A = ls_A[4]
+      self.hasPrevPose = 0
+
     assert len(self.model_input) == 36
     return self.model_input
   
@@ -197,7 +211,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.desired_eeA_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       self.desired_eeB_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
