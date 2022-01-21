@@ -38,7 +38,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
