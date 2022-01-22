@@ -38,7 +38,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
@@ -294,6 +294,7 @@ class StepCoopEnv(ResetCoopEnv):
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     self.desired_obj_wrench = desired_obj_wrench
+    print("desired_obj_wrench----------******", desired_obj_wrench)
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
