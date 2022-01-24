@@ -4,8 +4,8 @@ import pickle
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
-model = DDPG.load("ppo_coop_manip")
-# model = PPO2.load("ppo_coop_manip")
+# model = DDPG.load("ppo_coop_manip")
+model = PPO2.load("ppo_coop_manip")
 
 env = gym.make('CoopEnv-v0')
 obs = env.reset()
