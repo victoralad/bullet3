@@ -38,13 +38,15 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
+
+    # p.setRealTimeSimulation(1)
 
 
   def apply_action(self, action, p):
@@ -102,7 +104,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.ComputeEnvState(p)
     self.model_input = np.append(self.model_input, self.desired_eeA_wrench)
     self.model_input = np.append(self.model_input, self.desired_eeB_wrench)
-    self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
+    # self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
     self.model_input = np.append(self.model_input, np.array(self.env_state["object_pose"]))
     self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
@@ -117,7 +119,7 @@ class StepCoopEnv(ResetCoopEnv):
       # self.prevPose1_A = ls_A[4]
       self.hasPrevPose = 0
 
-    assert len(self.model_input) == 36
+    assert len(self.model_input) == 30
     return self.model_input
   
   def GetReward(self, p, num_steps):
@@ -138,7 +140,10 @@ class StepCoopEnv(ResetCoopEnv):
     self.terminal_reward = 0.0
     if num_steps > self.horizon:
       self.terminal_reward = 10.0
-    reward = 4.0 -obj_pose_error_norm**2 + self.terminal_reward
+    argument = 0.003 * (num_steps - self.horizon)
+    decay = np.exp(argument)
+    reward = 4.0 -(obj_pose_error_norm) + self.terminal_reward
+    print("##################", obj_pose_error_norm)
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
@@ -210,11 +215,10 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
-      self.desired_eeA_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      self.ComputeWrenchFromGraspMatrix(p)
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      self.desired_eeB_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
@@ -234,6 +238,7 @@ class StepCoopEnv(ResetCoopEnv):
     # Get object pose & velocity
     obj_pose_state = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose_state[0]) + list(p.getEulerFromQuaternion(obj_pose_state[1]))
+    # print("****************************", obj_pose)
     obj_vel = p.getBaseVelocity(self.grasped_object)
     obj_vel = list(obj_vel[1]) + list(obj_vel[1])
 
@@ -268,7 +273,7 @@ class StepCoopEnv(ResetCoopEnv):
   def GetEnvState(self):
     return self.env_state
     
-  def ComputeWrenchFromGraspMatrix(self, robot, p):
+  def ComputeWrenchFromGraspMatrix(self, p):
     # TODO (Victor): compute F_T = G_inv * F_o
     desired_obj_wrench = self.ComputeDesiredObjectWrench(p)
     grasp_matrix = self.ComputeGraspMatrix(p)
@@ -277,10 +282,8 @@ class StepCoopEnv(ResetCoopEnv):
     # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
     
-    if robot == self.robotId_A:
-      return wrench[:6]
-    else:
-      return wrench[6:]
+    self.desired_eeA_wrench = wrench[:6]
+    self.desired_eeB_wrench = wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
@@ -294,7 +297,6 @@ class StepCoopEnv(ResetCoopEnv):
     desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     self.desired_obj_wrench = desired_obj_wrench
-    print("desired_obj_wrench----------******", desired_obj_wrench)
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
