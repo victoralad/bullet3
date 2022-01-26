@@ -35,16 +35,17 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 400
+    self.horizon = 4000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/14_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
+    self.time_mod = 1 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
 
     # p.setRealTimeSimulation(1)
 
@@ -77,7 +78,14 @@ class StepCoopEnv(ResetCoopEnv):
                                     maxVelocity=0.01)
           p.stepSimulation()
         if self.antag_data_idx < len(self.antag_joint_pos) - 1:
-          self.antag_data_idx += 1
+          if self.time_mod > 0:
+            # print("*******************")
+            # print(self.time_mod)
+            # print(self.antag_joint_pos[self.antag_data_idx])
+            self.time_mod -= 1
+          else:
+            self.antag_data_idx += 1
+            self.time_mod = 10
         if self.reset_eps:
           self.antag_data_idx = 0
 
@@ -162,14 +170,14 @@ class StepCoopEnv(ResetCoopEnv):
     if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
-    elif norm > 2.0 and self.ee_constraint_reward > 0.05:
+    elif norm > 2.0 and self.ee_constraint_reward > 0.08:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
               3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     elif norm > 2.0:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
-    elif self.ee_constraint_reward > 0.05:
+    elif self.ee_constraint_reward > 0.08:
       done = True
       info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     
@@ -216,7 +224,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
