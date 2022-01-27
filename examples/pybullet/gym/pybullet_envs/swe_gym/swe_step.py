@@ -170,14 +170,14 @@ class StepCoopEnv(ResetCoopEnv):
     if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
-    elif norm > 2.0 and self.ee_constraint_reward > 0.08:
+    elif norm > 2.0 and self.ee_constraint_reward > 0.05:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
               3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     elif norm > 2.0:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
-    elif self.ee_constraint_reward > 0.08:
+    elif self.ee_constraint_reward > 0.05:
       done = True
       info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     
