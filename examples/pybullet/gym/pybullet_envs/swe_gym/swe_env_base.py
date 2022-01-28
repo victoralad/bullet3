@@ -28,21 +28,21 @@ class CoopEnv(gym.Env):
     # They must be gym.spaces objects
     num_robots = 2
     force_vec_len = 6
-    max_force = 1.0
+    max_force = 0.5
     low_action = np.array([-max_force] * force_vec_len)
     high_action = np.array([max_force] * force_vec_len)
     self.action_space = spaces.Box(low_action, high_action)
 
     # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_obj_pose, measured_ee_pose)]
-    obs_space = np.array([max_force]*force_vec_len * num_robots + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
-    assert len(obs_space) == 30
+    obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force]*force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
+    assert len(obs_space) == 36
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
-    self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
+    # self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.0, 0.6, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.3, 0.3, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
-    # self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
+    self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())

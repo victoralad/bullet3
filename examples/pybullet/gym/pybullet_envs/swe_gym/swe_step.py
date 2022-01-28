@@ -35,10 +35,10 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 4000
+    self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
     self.antag_data_idx = 0
     self.reset_eps = False
     self.use_hard_data = True
@@ -112,7 +112,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.ComputeEnvState(p)
     self.model_input = np.append(self.model_input, self.desired_eeA_wrench)
     self.model_input = np.append(self.model_input, self.desired_eeB_wrench)
-    # self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
+    self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
     self.model_input = np.append(self.model_input, np.array(self.env_state["object_pose"]))
     self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
@@ -127,7 +127,7 @@ class StepCoopEnv(ResetCoopEnv):
       # self.prevPose1_A = ls_A[4]
       self.hasPrevPose = 0
 
-    assert len(self.model_input) == 30
+    assert len(self.model_input) == 36
     return self.model_input
   
   def GetReward(self, p, num_steps):
@@ -224,7 +224,8 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
