@@ -33,8 +33,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.desired_eeB_wrench = None
     self.action = None
     self.grasp_matrix = None
-    self.mean_dist = [0.14]*6
-    cov_dist_vec = [0.08]*6
+    self.mean_dist = [0.1]*6
+    cov_dist_vec = [0.1]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
     self.horizon = 300

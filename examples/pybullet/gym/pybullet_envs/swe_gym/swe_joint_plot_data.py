@@ -2,7 +2,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 
-exp_run = 12
+exp_run = 15
 
 with open('data/rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
     # read the data as binary data stream
