@@ -38,7 +38,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/30_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
     self.hard_to_sim_ratio = 10
@@ -158,7 +158,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
-    reward = 4.0 -(obj_pose_error_norm) + self.terminal_reward
+    reward = 4.0 -(obj_pose_error_norm**2) + self.terminal_reward
     print("##################", obj_pose_error_norm)
     return reward, obj_pose_error_norm
 
