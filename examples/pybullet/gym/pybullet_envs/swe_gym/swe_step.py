@@ -38,14 +38,17 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/13_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/14_joints.npy')
     self.antag_data_idx = 0
+    self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
+    self.hard_to_sim_ratio = 10
+    self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
     self.use_hard_data = True
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
-    self.time_mod = 1 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
+
 
     # p.setRealTimeSimulation(1)
 
@@ -70,22 +73,27 @@ class StepCoopEnv(ResetCoopEnv):
             p.setJointMotorControl2(bodyIndex=self.robotId_B,
                                     jointIndex=i,
                                     controlMode=p.POSITION_CONTROL,
-                                    targetPosition=self.antag_joint_pos[self.antag_data_idx][i],
+                                    targetPosition=self.interpol_pos[i],
                                     targetVelocity=0,
                                     force=100,
                                     positionGain=0.1,
                                     velocityGain=0.5,
                                     maxVelocity=0.01)
           p.stepSimulation()
-        if self.antag_data_idx < len(self.antag_joint_pos) - 1:
-          if self.time_mod > 0:
-            # print("*******************")
+        if self.antag_data_idx < len(self.antag_joint_pos) - 2:
+          if self.time_mod < self.hard_to_sim_ratio:
+            self.time_mod += 1.0
+            interpos_ratio = self.time_mod / self.hard_to_sim_ratio
+            scaled_pos = interpos_ratio * (self.antag_joint_pos[self.antag_data_idx + 1] - self.antag_joint_pos[self.antag_data_idx])
+            self.interpol_pos = self.antag_joint_pos[self.antag_data_idx] + scaled_pos
+            # print("***************************")
             # print(self.time_mod)
             # print(self.antag_joint_pos[self.antag_data_idx])
-            self.time_mod -= 1
+            # print(self.antag_joint_pos[self.antag_data_idx + 1])
+            # print(self.interpol_pos)
           else:
             self.antag_data_idx += 1
-            self.time_mod = 10
+            self.time_mod = 0
         if self.reset_eps:
           self.antag_data_idx = 0
 
@@ -224,8 +232,8 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      # desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
-      desired_ee_wrench = np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
