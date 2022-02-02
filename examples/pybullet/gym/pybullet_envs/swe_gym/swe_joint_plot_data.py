@@ -16,14 +16,14 @@ with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehand
 plt.plot(obj_pose_error_data[0], obj_pose_error_data[1])
 plt.plot(obj_pose_error_data_no_rl[0], obj_pose_error_data_no_rl[1])
 # naming the x axis
-plt.xlabel('Num-time-steps')
+plt.xlabel('num-of-episodes')
 # naming the y axis
-plt.ylabel('Avg-obj-pose-error-norm')
+plt.ylabel('Mean OPEN per episode')
 
 plt.legend(["Residual RL", "Standard"])
   
 # giving a title to my graph
-plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(obj_pose_error_data[1][-1], obj_pose_error_data_no_rl[1][-1]))
+# plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(obj_pose_error_data[1][-1], obj_pose_error_data_no_rl[1][-1]))
 
 # Saving the figure.
 plt.savefig("data/joint_plot/ppo2_obj_error_norm_plot_{}.jpg".format(exp_run))

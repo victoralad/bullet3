@@ -54,10 +54,7 @@ del model
 #     pickle.dump(env.reward_data, filehandle)
 
 with open('data/obj_pose_error.data', 'wb') as filehandle:
-    pickle.dump(env.obj_pose_error_data, filehandle)
+    pickle.dump(env.mean_obj_pose_error_norm_data, filehandle)
 
 with open('data/obtained_reward.data', 'wb') as filehandle:
-    pickle.dump(env.obtained_reward, filehandle)
-
-with open('data/obj_pose_error_not_avg.data', 'wb') as filehandle:
-    pickle.dump(env.obj_pose_error_norm, filehandle)
+    pickle.dump(env.reward_data, filehandle)

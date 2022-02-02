@@ -22,4 +22,4 @@ while env.time_step < max_test_steps:
 folder = "rl"
 exp_run = 1
 with open('data/{}/obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
-    pickle.dump(env.obj_pose_error_data, filehandle)
+    pickle.dump(env.mean_obj_pose_error_norm_data, filehandle)
