@@ -13,7 +13,7 @@ with open('data/obtained_reward.data', 'rb') as filehandle:
 
 
 plt.plot(obj_pose_error_data[0], obj_pose_error_data[1])
-plt.plot(obj_pose_error_data[0], obtained_reward_data[1])
+plt.plot(obtained_reward_data[0], obtained_reward_data[1])
 
 # naming the x axis
 plt.xlabel('num-of-episodes')
@@ -27,7 +27,7 @@ plt.legend(["Mean OPEN per episode", "Mean reward per episode"])
 # plt.title('Plot of average object pose error norm \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
 
 # Saving the figure.
-plot_num = 1102
+plot_num = 1101
 plt.savefig("data/ppo2_obj_error_norm_TRAIN_plot_{}.jpg".format(plot_num))
 
 plt.show()

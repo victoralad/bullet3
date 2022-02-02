@@ -41,8 +41,8 @@ class CoopEnv(gym.Env):
     # self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.0, 0.6, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.3, 0.3, 0.0, 0.0, 0.0]
-    # self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
-    self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
+    self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
+    # self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -62,9 +62,9 @@ class CoopEnv(gym.Env):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
     reward, obj_pose_error_norm = self.step_coop_env.GetReward(p, self.num_steps_in_episode)
-    # print("******************************")
-    # print(self.mean_obj_pose_error_norm_data)
-    # print(self.reward_data)
+    print("******************************")
+    print(self.mean_obj_pose_error_norm_data[1][-1])
+    print(self.reward_data[1][-1])
 
     done, info = self.step_coop_env.GetInfo(p, self.num_steps_in_episode)
     self.obj_pose_error_norm_episode_sum += obj_pose_error_norm
