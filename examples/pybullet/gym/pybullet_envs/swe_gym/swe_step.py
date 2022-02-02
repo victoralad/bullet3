@@ -35,13 +35,13 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 400
+    self.horizon = 400*50
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
-    self.hard_to_sim_ratio = 10
+    self.hard_to_sim_ratio = 50
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
     self.use_hard_data = True
@@ -94,6 +94,8 @@ class StepCoopEnv(ResetCoopEnv):
           else:
             self.antag_data_idx += 1
             self.time_mod = 0
+        # if self.antag_data_idx < len(self.antag_joint_pos) - 1:
+        #   self.antag_data_idx += 1
         if self.reset_eps:
           self.antag_data_idx = 0
 
