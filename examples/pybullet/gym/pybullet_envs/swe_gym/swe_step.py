@@ -35,13 +35,13 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 400*50
+    self.horizon = 4000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
-    self.hard_to_sim_ratio = 50
+    self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
     self.use_hard_data = True
@@ -160,7 +160,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
-    reward = 4.0 -(obj_pose_error_norm**2) + self.terminal_reward
+    reward = 4.0 - obj_pose_error_norm**2 + self.terminal_reward
     print("##################", obj_pose_error_norm)
     return reward, obj_pose_error_norm
 
@@ -234,7 +234,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
