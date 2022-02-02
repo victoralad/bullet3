@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 4000
+    self.horizon = 400
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -153,10 +153,10 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Get pose error of the bar and done condition
     obj_pose_error = self.GetPoseError()
-    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
+    obj_pose_error_norm = np.linalg.norm(obj_pose_error[:3])
     
     self.terminal_reward = 0.0
-    if num_steps > self.horizon:
+    if num_steps > self.horizon and obj_pose_error_norm < 0.1:
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
@@ -234,7 +234,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)

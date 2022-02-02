@@ -28,7 +28,7 @@ class CoopEnv(gym.Env):
     # They must be gym.spaces objects
     num_robots = 2
     force_vec_len = 6
-    max_force = 0.5
+    max_force = 1.0
     low_action = np.array([-max_force] * force_vec_len)
     high_action = np.array([max_force] * force_vec_len)
     self.action_space = spaces.Box(low_action, high_action)
@@ -41,8 +41,8 @@ class CoopEnv(gym.Env):
     # self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.0, 0.6, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.3, 0.3, 0.0, 0.0, 0.0]
-    # self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
-    self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
+    self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
+    # self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
