@@ -46,6 +46,10 @@ class StepCoopEnv(ResetCoopEnv):
     self.reset_eps = False
     self.use_hard_data = True
 
+    self.obj_pose_error = [0.0] * 6
+    self.obj_pose_error_norm = 0.0
+    self.axis = 1
+
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
 
@@ -54,7 +58,7 @@ class StepCoopEnv(ResetCoopEnv):
 
 
   def apply_action(self, action, p):
-    assert len(action) == 6
+    assert len(action) == 1
     self.action = np.array(action)
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
@@ -152,16 +156,15 @@ class StepCoopEnv(ResetCoopEnv):
     ee_constr_reward = -self.ee_constraint_reward
 
     # Get pose error of the bar and done condition
-    obj_pose_error = self.GetPoseError()
-    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
+    self.obj_pose_error_norm = np.linalg.norm(self.obj_pose_error[self.axis])
     
     self.terminal_reward = 0.0
-    if num_steps > 200 and obj_pose_error_norm < 1.5:
-      self.terminal_reward = 10.0
-    argument = 0.003 * (num_steps - self.horizon)
-    decay = np.exp(argument)
-    reward = 4.0 - obj_pose_error_norm**2 + self.terminal_reward
-    return reward, obj_pose_error_norm
+    if num_steps > 400 and self.obj_pose_error_norm < 0.01:
+      self.terminal_reward = 1.0
+    # argument = 0.003 * (num_steps - self.horizon)
+    # decay = np.exp(argument)
+    reward = 0.0 - 10*self.obj_pose_error_norm + self.terminal_reward
+    return reward, self.obj_pose_error_norm
 
   def GetPoseError(self):
     obj_pose_error = [0.0] * 6
@@ -200,10 +203,7 @@ class StepCoopEnv(ResetCoopEnv):
     return done, info
 
   def GetInfo(self, p, num_steps):
-
-    obj_pose_error = self.GetPoseError()
-    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
-    done, info = self.CheckDone(obj_pose_error_norm, num_steps)
+    done, info = self.CheckDone(self.obj_pose_error_norm, num_steps)
 
     return done, info
   
@@ -240,7 +240,8 @@ class StepCoopEnv(ResetCoopEnv):
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
       # desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
-      desired_ee_wrench = np.array(action[:6])
+      desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
+      desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
@@ -306,19 +307,21 @@ class StepCoopEnv(ResetCoopEnv):
     # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
     
-    self.desired_eeA_wrench = wrench[:6]
+    self.desired_eeA_wrench = np.zeros((6,))
+    self.desired_eeA_wrench[self.axis] = self.action[0] 
+    # self.desired_eeA_wrench = wrench[:6]
     self.desired_eeB_wrench = wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
     Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
-    obj_pose_error = self.GetPoseError()
+    self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     self.desired_obj_wrench = desired_obj_wrench
     return desired_obj_wrench

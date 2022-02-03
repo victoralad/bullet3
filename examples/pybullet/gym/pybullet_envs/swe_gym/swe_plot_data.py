@@ -22,6 +22,7 @@ plt.xlabel('num-of-episodes')
 
 # OPEN stands for "Object Pose Error Norm."
 plt.legend(["Mean OPEN per episode", "Mean reward per episode"])
+# plt.legend(["Mean OPEN per episode"])
   
 # giving a title to my graph
 # plt.title('Plot of average object pose error norm \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
