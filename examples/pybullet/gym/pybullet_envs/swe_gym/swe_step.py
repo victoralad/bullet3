@@ -156,11 +156,11 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error_norm = np.linalg.norm(obj_pose_error)
     
     self.terminal_reward = 0.0
-    if num_steps > self.horizon and obj_pose_error_norm < 0.1:
+    if num_steps > 200 and obj_pose_error_norm < 1.5:
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
-    reward = 4.0 - 10*obj_pose_error_norm + self.terminal_reward
+    reward = 10.0 - 10*obj_pose_error_norm + self.terminal_reward
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
