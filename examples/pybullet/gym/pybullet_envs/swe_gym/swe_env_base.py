@@ -63,6 +63,7 @@ class CoopEnv(gym.Env):
     observation = self.step_coop_env.GetObservation(p)
     reward, obj_pose_error_norm = self.step_coop_env.GetReward(p, self.num_steps_in_episode)
     print("******************************")
+    print(self.num_steps_in_episode)
     print(self.mean_obj_pose_error_norm_data[1][-1])
     print(self.reward_data[1][-1])
 
@@ -89,13 +90,14 @@ class CoopEnv(gym.Env):
     # self.reward_data[0] += [self.num_episodes]
     # self.reward_data[1] += [avg_reward]
     # self.sum_reward = 0.0
+
     
     self.mean_obj_pose_error_norm_data[0] += [self.num_episodes]
     self.mean_obj_pose_error_norm_data[1] += [self.obj_pose_error_norm_episode_sum / self.num_steps_in_episode]
     self.obj_pose_error_norm_episode_sum = 0.0
 
     self.reward_data[0] += [self.num_episodes]
-    self.reward_data[1] += [self.sum_reward / self.time_step]
+    self.reward_data[1] += [self.sum_reward / self.num_steps_in_episode]
     self.sum_reward = 0.0
 
     self.num_steps_in_episode = 1

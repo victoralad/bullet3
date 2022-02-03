@@ -153,15 +153,14 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Get pose error of the bar and done condition
     obj_pose_error = self.GetPoseError()
-    obj_pose_error_norm = np.linalg.norm(obj_pose_error[:3])
+    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
     
     self.terminal_reward = 0.0
     if num_steps > self.horizon and obj_pose_error_norm < 0.1:
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
-    reward = 4.0 - obj_pose_error_norm + self.terminal_reward
-    print("##################", obj_pose_error_norm)
+    reward = 4.0 - 10*obj_pose_error_norm + self.terminal_reward
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
@@ -169,7 +168,13 @@ class StepCoopEnv(ResetCoopEnv):
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     for i in range(3):
+      obj_pose_error[i + 3] = self.desired_obj_pose[i+3] - (self.env_state["object_pose"])[i+3]
       obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
+    # print("******************************")
+    # print(self.env_state["object_pose"])
+    # print(obj_pose_error)
+    # while(1):
+    #   a = 1
     return obj_pose_error
 
   def CheckDone(self, norm, num_steps):
