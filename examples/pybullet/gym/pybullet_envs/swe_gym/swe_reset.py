@@ -43,7 +43,7 @@ class ResetCoopEnv(InitCoopEnv):
 
 
     # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
-    for i in range(20):
+    for i in range(40):
       self.gripper(self.kukaId_A, 0.02, p)
       self.gripper(self.kukaId_B, 0.02, p)
       p.stepSimulation()
@@ -103,7 +103,7 @@ class ResetCoopEnv(InitCoopEnv):
         '''
 
         for i in [9,10]:
-          p.setJointMotorControl2(robot, i, p.POSITION_CONTROL, finger_target, force= 10)
+          p.setJointMotorControl2(robot, i, p.POSITION_CONTROL, finger_target, force= 20)
   
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
