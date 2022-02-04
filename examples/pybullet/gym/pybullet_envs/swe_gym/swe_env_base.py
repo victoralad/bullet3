@@ -58,11 +58,15 @@ class CoopEnv(gym.Env):
     self.num_steps_in_episode = 1
     self.obj_pose_error_norm_episode_sum = 0.0
     self.mean_obj_pose_error_norm_data = [[0.0], [self.obj_pose_error_norm_episode_sum]]
+    self.last_OPEN = 0.0
+    self.last_reward = 0.0
 
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
     observation = self.step_coop_env.GetObservation(p)
     reward, obj_pose_error_norm = self.step_coop_env.GetReward(p, self.num_steps_in_episode)
+    self.last_OPEN = obj_pose_error_norm
+    self.last_reward = reward
     print("******************************")
     print(self.num_steps_in_episode)
     print(self.mean_obj_pose_error_norm_data[1][-1])
@@ -96,12 +100,18 @@ class CoopEnv(gym.Env):
     self.mean_obj_pose_error_norm_data[0] += [self.num_episodes]
     self.mean_obj_pose_error_norm_data[1] += [self.obj_pose_error_norm_episode_sum / self.num_steps_in_episode]
     self.obj_pose_error_norm_episode_sum = 0.0
-    self.min_OPEN = float('-inf')
+
+    # self.mean_obj_pose_error_norm_data[1] += [self.last_OPEN]
+    # self.min_OPEN = float('-inf')
+
 
     self.reward_data[0] += [self.num_episodes]
     self.reward_data[1] += [self.sum_reward / self.num_steps_in_episode]
     self.sum_reward = 0.0
-    self.max_ep_reward = float('-inf')
+
+    # self.reward_data[1] += [self.last_reward]
+    # self.max_ep_reward = float('-inf')
+
 
     self.num_steps_in_episode = 1
     

@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 400
+    self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -48,7 +48,7 @@ class StepCoopEnv(ResetCoopEnv):
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
-    self.axis = 2
+    self.axis = 1
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
@@ -159,7 +159,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.obj_pose_error_norm = np.linalg.norm(self.obj_pose_error[self.axis])
     
     self.terminal_reward = 0.0
-    if num_steps > 400 and self.obj_pose_error_norm < 0.01:
+    if num_steps > self.horizon and self.obj_pose_error_norm < 0.01:
       self.terminal_reward = 1.0
     # argument = 0.003 * (num_steps - self.horizon)
     # decay = np.exp(argument)
