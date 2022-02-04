@@ -48,7 +48,7 @@ class StepCoopEnv(ResetCoopEnv):
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
-    self.axis = 1
+    self.axis = 2
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
@@ -307,9 +307,9 @@ class StepCoopEnv(ResetCoopEnv):
     # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
     
-    self.desired_eeA_wrench = np.zeros((6,))
-    self.desired_eeA_wrench[self.axis] = self.action[0] 
-    # self.desired_eeA_wrench = wrench[:6]
+    # self.desired_eeA_wrench = np.zeros((6,))
+    # self.desired_eeA_wrench[self.axis] = self.action[0] 
+    self.desired_eeA_wrench = wrench[:6]
     self.desired_eeB_wrench = wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
