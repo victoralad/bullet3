@@ -44,11 +44,11 @@ class StepCoopEnv(ResetCoopEnv):
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = True
+    self.use_hard_data = False
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
-    self.axis = 1
+    self.axis = 0
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
@@ -239,12 +239,12 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      # desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
-      desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
-      desired_ee_wrench[self.axis] = action[0]
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
+      # desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      desired_ee_wrench = self.desired_eeB_wrench + disturbance
+      desired_ee_wrench = self.desired_eeB_wrench# + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))

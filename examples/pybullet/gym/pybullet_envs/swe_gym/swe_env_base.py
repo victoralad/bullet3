@@ -29,7 +29,7 @@ class CoopEnv(gym.Env):
     num_robots = 2
     force_vec_len = 6
     action_space_size = 1
-    max_force = 2.0
+    max_force = 10.0
     low_action = np.array([-max_force] * action_space_size)
     high_action = np.array([max_force] * action_space_size)
     self.action_space = spaces.Box(low_action, high_action)
@@ -42,7 +42,7 @@ class CoopEnv(gym.Env):
     # self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.0, 0.6, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.3, 0.3, 0.0, 0.0, 0.0]
-    self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
+    self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 1.571]
     # self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
