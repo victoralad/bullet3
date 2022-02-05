@@ -263,7 +263,10 @@ class StepCoopEnv(ResetCoopEnv):
     # Get object pose & velocity
     obj_pose_state = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose_state[0]) + list(p.getEulerFromQuaternion(obj_pose_state[1]))
-    # print("****************************", obj_pose)
+    # print("****************************")
+    # print(obj_pose)
+    # while(1):
+    #   a = 1
     obj_vel = p.getBaseVelocity(self.grasped_object)
     obj_vel = list(obj_vel[1]) + list(obj_vel[1])
 
@@ -303,8 +306,6 @@ class StepCoopEnv(ResetCoopEnv):
     desired_obj_wrench = self.ComputeDesiredObjectWrench(p)
     grasp_matrix = self.ComputeGraspMatrix(p)
     inv_grasp_matrix = np.linalg.pinv(grasp_matrix)
-    # grasp_matrix_sq = grasp_matrix.dot(grasp_matrix.T)
-    # inv_grasp_matrix = grasp_matrix.T.dot(np.linalg.inv(grasp_matrix_sq))
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
     
     # self.desired_eeA_wrench = np.zeros((6,))
