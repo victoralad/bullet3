@@ -161,7 +161,6 @@ class StepCoopEnv(ResetCoopEnv):
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
     reward = 4.0 - obj_pose_error_norm**2 + self.terminal_reward
-    print("##################", obj_pose_error_norm)
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
@@ -257,7 +256,6 @@ class StepCoopEnv(ResetCoopEnv):
     # Get object pose & velocity
     obj_pose_state = p.getBasePositionAndOrientation(self.grasped_object)
     obj_pose = list(obj_pose_state[0]) + list(p.getEulerFromQuaternion(obj_pose_state[1]))
-    # print("****************************", obj_pose)
     obj_vel = p.getBaseVelocity(self.grasped_object)
     obj_vel = list(obj_vel[1]) + list(obj_vel[1])
 
@@ -338,7 +336,7 @@ class StepCoopEnv(ResetCoopEnv):
     obj_mass = dynamics_info[0]
     obj_inertia_vector = list(dynamics_info[2])
     obj_inertia_matrix = np.diag(obj_inertia_vector) # needs to be transformed
-    obj_inertia_matrix = ((self.env_state["object_orn_matrix"]).dot(obj_inertia_matrix)).dot((self.env_state["object_orn_matrix"]).T)
+    obj_inertia_matrix = ((self.env_state["object_orn_matrix"]).dot(obj_inertia_matrix)).dot((self.env_state["object_orn_matrix"]).T) # has been transformed
     mass_matrix_top_row = np.hstack((obj_mass * np.eye(3), np.zeros((3, 3))))
     mass_matrix_bottom_row = np.hstack((np.zeros((3, 3)), obj_inertia_matrix))
     obj_mass_matrix = np.vstack((mass_matrix_top_row, mass_matrix_bottom_row))
