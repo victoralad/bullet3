@@ -44,11 +44,13 @@ class StepCoopEnv(ResetCoopEnv):
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = False
+    self.use_hard_data = True
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
     self.axis = 0
+    self.robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
+    self.robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
@@ -136,27 +138,7 @@ class StepCoopEnv(ResetCoopEnv):
       #use 0 for no-removal
       trailDuration = 10000
       p.addUserDebugLine((self.desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
-      robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
-      robotA_base = list(robotA_base[0])
-      # robotA_base_axis_x = [robotA_base[0] + 0.5, 0.0, 0.0]
-      # robotA_base_axis_y = [0.0, robotA_base[1] + 0.5, 0.0]
-      # robotA_base_axis_z = [0.0, 0.0, robotA_base[2] + 0.5]
-      # p.addUserDebugLine(robotA_base, robotA_base_axis_x, [0.8, 0.0, 0.0], 2, trailDuration)
-      # p.addUserDebugLine(robotA_base, robotA_base_axis_y, [0.0, 0.8, 0.0], 2, trailDuration)
-      # p.addUserDebugLine(robotA_base, robotA_base_axis_z, [0.0, 0.0, 0.8], 2, trailDuration)
 
-      # robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
-      # robotB_base = list(robotB_base[0])
-      # robotB_base_axis = copy.copy(robotB_base)
-      # robotB_base_axis[0] = robotB_base[0] + 1.0
-      # robotB_base_axis[1] = robotB_base[1] + 1.0
-      # robotB_base_axis[2] = robotB_base[2] + 1.0
-      # p.addUserDebugLine(robotB_base, robotB_base_axis, [0.8, 0.0, 0.0], 2, trailDuration)
-      # p.addUserDebugLine(robotB_base, robotB_base_axis, [0.0, 0.8, 0.0], 2, trailDuration)
-      # p.addUserDebugLine(robotB_base, robotB_base_axis, [0.0, 0.0, 0.8], 2, trailDuration)
-      # p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
-      # self.prev_obj_pose = (self.env_state["object_pose"])[:3]
-      # self.prevPose1_A = ls_A[4]
       self.hasPrevPose = 0
 
     assert len(self.model_input) == 36
@@ -259,7 +241,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
-      # desired_ee_wrench[self.axis] = action[0]
+      desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance
@@ -328,8 +310,23 @@ class StepCoopEnv(ResetCoopEnv):
     
     # self.desired_eeA_wrench = np.zeros((6,))
     # self.desired_eeA_wrench[self.axis] = self.action[0] 
-    self.desired_eeA_wrench = wrench[:6]
-    self.desired_eeB_wrench = wrench[6:]
+    self.desired_eeA_wrench = self.ToBaseFrame(wrench[:6], "robotA", p)
+    self.desired_eeB_wrench = self.ToBaseFrame(wrench[6:], "robotB", p)
+  
+  def ToBaseFrame(self, wrench, robotId, p):
+    if robotId == "robotA":
+      base_disp_vec = -np.array((self.robotA_base)[0])
+    elif robotId == "robotB":
+      base_disp_vec = -np.array((self.robotB_base)[0])
+    top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3))))
+    bottom_three_rows = np.hstack((self.skew(base_disp_vec), np.eye(3)))
+    rotWorldToBase = np.vstack((top_three_rows, bottom_three_rows))
+    transformed_wrench = rotWorldToBase.dot(np.array(wrench))
+    # print(rotWorldToBase)
+    # print(wrench)
+    # print(transformed_wrench)
+    # quit()
+    return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
