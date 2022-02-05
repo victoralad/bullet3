@@ -136,6 +136,24 @@ class StepCoopEnv(ResetCoopEnv):
       #use 0 for no-removal
       trailDuration = 10000
       p.addUserDebugLine((self.desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
+      robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
+      robotA_base = list(robotA_base[0])
+      # robotA_base_axis_x = [robotA_base[0] + 0.5, 0.0, 0.0]
+      # robotA_base_axis_y = [0.0, robotA_base[1] + 0.5, 0.0]
+      # robotA_base_axis_z = [0.0, 0.0, robotA_base[2] + 0.5]
+      # p.addUserDebugLine(robotA_base, robotA_base_axis_x, [0.8, 0.0, 0.0], 2, trailDuration)
+      # p.addUserDebugLine(robotA_base, robotA_base_axis_y, [0.0, 0.8, 0.0], 2, trailDuration)
+      # p.addUserDebugLine(robotA_base, robotA_base_axis_z, [0.0, 0.0, 0.8], 2, trailDuration)
+
+      # robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
+      # robotB_base = list(robotB_base[0])
+      # robotB_base_axis = copy.copy(robotB_base)
+      # robotB_base_axis[0] = robotB_base[0] + 1.0
+      # robotB_base_axis[1] = robotB_base[1] + 1.0
+      # robotB_base_axis[2] = robotB_base[2] + 1.0
+      # p.addUserDebugLine(robotB_base, robotB_base_axis, [0.8, 0.0, 0.0], 2, trailDuration)
+      # p.addUserDebugLine(robotB_base, robotB_base_axis, [0.0, 0.8, 0.0], 2, trailDuration)
+      # p.addUserDebugLine(robotB_base, robotB_base_axis, [0.0, 0.0, 0.8], 2, trailDuration)
       # p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
       # self.prev_obj_pose = (self.env_state["object_pose"])[:3]
       # self.prevPose1_A = ls_A[4]
