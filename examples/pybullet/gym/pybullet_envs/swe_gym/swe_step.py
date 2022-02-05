@@ -160,7 +160,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
-    reward = 4.0 - obj_pose_error_norm**2 + self.terminal_reward
+    reward = 4.0 - 10*obj_pose_error_norm**2 + self.terminal_reward
     return reward, obj_pose_error_norm
 
   def GetPoseError(self):
@@ -239,8 +239,8 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      # desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
-      desired_ee_wrench = np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
