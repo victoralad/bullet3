@@ -12,6 +12,8 @@ with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehand
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
+mean_OPEN_residual = sum(obj_pose_error_data[1]) / len(obj_pose_error_data[0])
+mean_OPEN_standard = sum(obj_pose_error_data_no_rl[1]) / len(obj_pose_error_data_no_rl[0])
 
 plt.plot(obj_pose_error_data[0], obj_pose_error_data[1])
 plt.plot(obj_pose_error_data_no_rl[0], obj_pose_error_data_no_rl[1])
@@ -23,7 +25,7 @@ plt.ylabel('Mean OPEN per episode')
 plt.legend(["Residual RL", "Standard"])
   
 # giving a title to my graph
-# plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(obj_pose_error_data[1][-1], obj_pose_error_data_no_rl[1][-1]))
+plt.title('Overall mean OPEN for residual RL = {:.3f} \n Overall mean OPEN for standard controler = {:.3f}'.format(mean_OPEN_residual, mean_OPEN_standard))
 
 # Saving the figure.
 plt.savefig("data/joint_plot/ppo2_obj_error_norm_plot_{}.jpg".format(exp_run))

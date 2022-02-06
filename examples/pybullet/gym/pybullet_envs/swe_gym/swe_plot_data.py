@@ -10,7 +10,8 @@ with open('data/obtained_reward.data', 'rb') as filehandle:
     # read the data as binary data stream
     obtained_reward_data = pickle.load(filehandle)
 
-
+mean_OPEN = sum(obj_pose_error_data[1]) / len(obj_pose_error_data[0])
+mean_reward = sum(obtained_reward_data[1]) / len(obtained_reward_data[0])
 
 plt.plot(obj_pose_error_data[0], obj_pose_error_data[1])
 plt.plot(obtained_reward_data[0], obtained_reward_data[1])
@@ -24,7 +25,7 @@ plt.xlabel('num-of-episodes')
 plt.legend(["Mean OPEN per episode", "Mean reward per episode"])
   
 # giving a title to my graph
-# plt.title('Plot of average object pose error norm \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
+plt.title('Overall mean OPEN = {:.3f} \n Overall mean reward = {:.3f}'.format(mean_OPEN, mean_reward))
 
 # Saving the figure.
 plot_num = 1101
