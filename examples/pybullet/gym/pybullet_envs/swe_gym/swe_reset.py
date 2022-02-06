@@ -109,13 +109,13 @@ class ResetCoopEnv(InitCoopEnv):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = np.array([])
     self.ComputeEnvState(p)
-    self.model_input = np.append(self.model_input, self.ComputeWrenchFromGraspMatrix(self.kukaId_A, p))
-    self.model_input = np.append(self.model_input, self.ComputeWrenchFromGraspMatrix(self.kukaId_B, p))
-    self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
+    # self.model_input = np.append(self.model_input, self.ComputeWrenchFromGraspMatrix(self.kukaId_A, p))
+    # self.model_input = np.append(self.model_input, self.ComputeWrenchFromGraspMatrix(self.kukaId_B, p))
+    # self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
     self.model_input = np.append(self.model_input, np.array(self.env_state["object_pose"]))
     self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
-    assert len(self.model_input) == 36
+    assert len(self.model_input) == 18
     return self.model_input
   
   def ComputeEnvState(self, p):

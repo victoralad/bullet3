@@ -6,8 +6,11 @@ import tensorflow as tf
 from stable_baselines import DDPG, PPO2
 from stable_baselines.common.policies import FeedForwardPolicy, register_policy
 from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
+from stable_baselines.common.vec_env import DummyVecEnv, VecNormalize
 
 env = gym.make('CoopEnv-v0')
+# env = DummyVecEnv([lambda: gym.make("CoopEnv-v0")])
+# env = VecNormalize(env, norm_obs=True, norm_reward=True)
 
 n_actions = env.action_space.shape[-1]
 action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
@@ -29,7 +32,7 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 class CustomPolicy(FeedForwardPolicy):
     def __init__(self, *args, **kwargs):
         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
-                                           net_arch=[64, 32, 32, 32, 16, dict(pi=[16, 16, 8, 8], vf=[8, 8, 4, 4])],
+                                           net_arch=[32, 16, dict(pi=[16, 8, 8], vf=[8, 8, 4])],
                                            feature_extraction="mlp")
 # class CustomPolicy(FeedForwardPolicy):
 #     def __init__(self, *args, **kwargs):
@@ -43,11 +46,11 @@ class CustomPolicy(FeedForwardPolicy):
 #                                            net_arch=[32, 32, dict(pi=[32, 32, 6], vf=[32, 32, 1])],
 #                                            feature_extraction="mlp")
 
-model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
-# model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1)
+# model = PPO2(CustomPolicy, env, learning_rate=2.5e-3, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
+model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1)
 
 # Train the agent
-total_timesteps = 50000
+total_timesteps = 10000
 model.learn(total_timesteps=total_timesteps)
 
 print("")
