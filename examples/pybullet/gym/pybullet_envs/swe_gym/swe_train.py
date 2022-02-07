@@ -26,16 +26,16 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 
 # model = DDPG(CustomDDPGPolicy, env, verbose=1, action_noise=action_noise)
 
-# class CustomPolicy(FeedForwardPolicy):
-#     def __init__(self, *args, **kwargs):
-#         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
-#                                            net_arch=[64, 32, dict(pi=[16, 32, 16, 8], vf=[16, 8, 4])],
-#                                            feature_extraction="mlp")
 class CustomPolicy(FeedForwardPolicy):
     def __init__(self, *args, **kwargs):
         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
-                                           net_arch=[8, dict(pi=[8, 8, 6], vf=[4, 4, 1])],
+                                           net_arch=[256, 128, 64, 64, dict(pi=[64, 32, 16, 8], vf=[32, 16, 8, 4])],
                                            feature_extraction="mlp")
+# class CustomPolicy(FeedForwardPolicy):
+#     def __init__(self, *args, **kwargs):
+#         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
+#                                            net_arch=[8, dict(pi=[8, 8, 6], vf=[4, 4, 1])],
+#                                            feature_extraction="mlp")
 
 # class CustomPolicy(FeedForwardPolicy):
 #     def __init__(self, *args, **kwargs):

@@ -241,7 +241,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
-      # desired_ee_wrench[self.axis] += action[0]
+      desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance
