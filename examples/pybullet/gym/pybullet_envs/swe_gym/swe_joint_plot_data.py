@@ -1,5 +1,6 @@
 import pickle
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 exp_run = 1
@@ -15,14 +16,19 @@ with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehand
 
 plt.plot(obj_pose_error_data[0], obj_pose_error_data[1])
 plt.plot(obj_pose_error_data_no_rl[0], obj_pose_error_data_no_rl[1])
+
+mean_OPEN_RL = np.mean(obj_pose_error_data[1])
+mean_OPEN_standard = np.mean(obj_pose_error_data_no_rl[1])
+
 # naming the x axis
 plt.xlabel('num-of-episodes')
 # naming the y axis
 plt.ylabel('Mean OPEN per episode')
 
-plt.legend(["Residual RL", "Standard"])
+plt.legend(["RL", "Standard"])
   
 # giving a title to my graph
+plt.title('Mean of mean OPEN (RL) = {:.3f} \n Mean of mean OPEN (Standard) = {:.3f}'.format(mean_OPEN_RL, mean_OPEN_standard))
 # plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(obj_pose_error_data[1][-1], obj_pose_error_data_no_rl[1][-1]))
 
 # Saving the figure.
