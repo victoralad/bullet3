@@ -43,11 +43,11 @@ class CustomPolicy(FeedForwardPolicy):
 #                                            net_arch=[32, 32, dict(pi=[32, 32, 6], vf=[32, 32, 1])],
 #                                            feature_extraction="mlp")
 
-model = PPO2(CustomPolicy, env, learning_rate=2.5e-3, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
-# model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1)
+# model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
+model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1)
 
 # Train the agent
-total_timesteps = 10000
+total_timesteps = 30000
 model.learn(total_timesteps=total_timesteps)
 
 print("")
@@ -69,3 +69,6 @@ with open('data/obj_pose_error.data', 'wb') as filehandle:
 
 with open('data/obtained_reward.data', 'wb') as filehandle:
     pickle.dump(env.reward_data, filehandle)
+
+with open('data/actions.data', 'wb') as filehandle:
+    pickle.dump(env.action_data, filehandle)

@@ -48,7 +48,7 @@ class StepCoopEnv(ResetCoopEnv):
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
-    self.axis = 0
+    self.axis = 2
     self.robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
     self.robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
 
@@ -156,7 +156,7 @@ class StepCoopEnv(ResetCoopEnv):
     ee_constr_reward = -self.ee_constraint_reward
 
     # Get pose error of the bar and done condition
-    self.obj_pose_error_norm = np.linalg.norm(self.obj_pose_error[self.axis])
+    self.obj_pose_error_norm = min(np.linalg.norm(self.obj_pose_error[self.axis]), 2.0)
     
     self.terminal_reward = 0.0
     if num_steps > self.horizon and self.obj_pose_error_norm < 0.01:
@@ -241,7 +241,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
-      desired_ee_wrench[self.axis] = action[0]
+      # desired_ee_wrench[self.axis] += action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance

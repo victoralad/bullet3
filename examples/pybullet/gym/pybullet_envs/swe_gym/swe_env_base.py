@@ -29,7 +29,7 @@ class CoopEnv(gym.Env):
     num_robots = 2
     force_vec_len = 6
     action_space_size = 1
-    max_force = 10.0
+    max_force = 2.0
     low_action = np.array([-max_force] * action_space_size)
     high_action = np.array([max_force] * action_space_size)
     self.action_space = spaces.Box(low_action, high_action)
@@ -60,6 +60,7 @@ class CoopEnv(gym.Env):
     self.mean_obj_pose_error_norm_data = [[0.0], [self.obj_pose_error_norm_episode_sum]]
     self.last_OPEN = 0.0
     self.last_reward = 0.0
+    self.action_data = [0.0]
 
   def step(self, action):
     self.step_coop_env.apply_action(action, p)
@@ -71,6 +72,8 @@ class CoopEnv(gym.Env):
     print(self.num_steps_in_episode)
     print(self.mean_obj_pose_error_norm_data[1][-1])
     print(self.reward_data[1][-1])
+
+    self.action_data += [action]
 
     done, info = self.step_coop_env.GetInfo(p, self.num_steps_in_episode)
     self.obj_pose_error_norm_episode_sum += obj_pose_error_norm
