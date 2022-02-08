@@ -40,7 +40,7 @@ plt.title('Overall mean OPEN = {:.3f}, Overall mean reward = {:.3f} \n Final mea
 # plt.title('Plot of average object pose error norm \n Number of steps = {}, overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[0][-1], obj_pose_error_data[1][-1]))
 
 # Saving the figure.
-plot_num = 1105
-plt.savefig("data/OPEN_TRAIN_plot_{}.jpg".format(plot_num))
+plot_num = 1101
+plt.savefig("data/aaa_OPEN_TRAIN_plot_{}.jpg".format(plot_num))
 
 plt.show()

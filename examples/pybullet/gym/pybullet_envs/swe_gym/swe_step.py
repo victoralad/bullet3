@@ -34,11 +34,10 @@ class StepCoopEnv(ResetCoopEnv):
     self.mean_dist = [0.0]*6
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
-    self.terminal_reward = 0.0
     self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/13_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
     self.hard_to_sim_ratio = 10
@@ -157,13 +156,18 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Get pose error of the bar and done condition
     self.obj_pose_error_norm = min(np.linalg.norm(self.obj_pose_error[self.axis]), 2.0)
+
+    obj_pose_error_norm_reward = -self.obj_pose_error_norm
     
-    self.terminal_reward = 0.0
-    if num_steps > self.horizon and self.obj_pose_error_norm < 0.01:
-      self.terminal_reward = 1.0
-    # argument = 0.003 * (num_steps - self.horizon)
-    # decay = np.exp(argument)
-    reward = 0.0 - 10*self.obj_pose_error_norm + self.terminal_reward
+    terminal_reward_final_error = 0.0
+    if num_steps > self.horizon:
+      terminal_reward_final_error = -10.0*self.obj_pose_error_norm
+    
+    terminal_reward_full_horizon = 0.0
+    if num_steps > self.horizon:
+      terminal_reward_full_horizon = 5.0
+
+    reward = 0.0 + obj_pose_error_norm_reward + terminal_reward_final_error + terminal_reward_full_horizon
     return reward, self.obj_pose_error_norm
 
   def GetPoseError(self):
