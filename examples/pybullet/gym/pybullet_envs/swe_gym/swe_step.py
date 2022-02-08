@@ -124,7 +124,7 @@ class StepCoopEnv(ResetCoopEnv):
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = []
-    self.ComputeEnvState(p)
+    # self.ComputeEnvState(p)
     self.model_input = np.append(self.model_input, self.desired_eeA_wrench)
     self.model_input = np.append(self.model_input, self.desired_eeB_wrench)
     self.model_input = np.append(self.model_input, np.array(self.env_state["measured_force_torque_A"]))
@@ -157,17 +157,21 @@ class StepCoopEnv(ResetCoopEnv):
     # Get pose error of the bar and done condition
     self.obj_pose_error_norm = min(np.linalg.norm(self.obj_pose_error[self.axis]), 2.0)
 
+    # Rewards
     obj_pose_error_norm_reward = -self.obj_pose_error_norm
+    
+    scale_factor = 0.05
+    episode_len_reward = 0.05*num_steps
     
     terminal_reward_final_error = 0.0
     if num_steps > self.horizon:
-      terminal_reward_final_error = -10.0*self.obj_pose_error_norm
+      terminal_reward_final_error = -5.0*self.obj_pose_error_norm
     
     terminal_reward_full_horizon = 0.0
     if num_steps > self.horizon:
       terminal_reward_full_horizon = 5.0
 
-    reward = 0.0 + obj_pose_error_norm_reward + terminal_reward_final_error + terminal_reward_full_horizon
+    reward = 0.0 + obj_pose_error_norm_reward + episode_len_reward + terminal_reward_final_error + terminal_reward_full_horizon
     return reward, self.obj_pose_error_norm
 
   def GetPoseError(self):
@@ -252,8 +256,8 @@ class StepCoopEnv(ResetCoopEnv):
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
-    dyn_ctnt_inv = np.eye(6)
-    desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+    # dyn_ctnt_inv = np.eye(6)
+    desired_joint_torques = (jac.T).dot(desired_ee_wrench) + np.array(nonlinear_forces)
     return desired_joint_torques[:self.numJoints]
   
   def getJointStates(self, robotId, p):
@@ -341,7 +345,7 @@ class StepCoopEnv(ResetCoopEnv):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
     self.desired_obj_wrench = desired_obj_wrench
     return desired_obj_wrench
