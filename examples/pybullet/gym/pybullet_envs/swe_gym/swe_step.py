@@ -111,7 +111,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.terminal_reward = 10.0
     argument = 0.003 * (num_steps - self.horizon)
     decay = np.exp(argument)
-    reward = 2.0 - self.eeA_pose_error_norm**2 + self.terminal_reward #- self.ee_constraint_reward - velocity_norm**2
+    reward = 2.0 - 10*self.eeA_pose_error_norm + self.terminal_reward #- self.ee_constraint_reward - velocity_norm**2
     return reward, self.eeA_pose_error_norm
 
   def GetPoseError(self):
