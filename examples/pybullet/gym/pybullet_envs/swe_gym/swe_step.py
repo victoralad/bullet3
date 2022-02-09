@@ -52,6 +52,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.eeA_pose_error = None
     self.eeA_pose_error_norm = None
     self.prev_eeA_pos = np.zeros((6,))
+    self.standard_control = True
 
     # p.setRealTimeSimulation(1)
 
@@ -64,15 +65,14 @@ class StepCoopEnv(ResetCoopEnv):
     # computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
     
     if (self.useSimulation):
-      for i in range(200):
-        for i in range(self.numJoints):
-          p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
-          p.setJointMotorControl2(bodyIndex=self.robotId_A,
-                                jointIndex=i,
-                                controlMode=p.TORQUE_CONTROL,
-                                force=computed_joint_torques_robot_A[i])
+      for _ in range(1):
+        p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.0]*self.numJoints)
+        p.setJointMotorControlArray(bodyIndex=self.robotId_A,
+                              jointIndices=list(range(self.numJoints)),
+                              controlMode=p.TORQUE_CONTROL,
+                              forces=computed_joint_torques_robot_A)
 
-          p.stepSimulation()
+        p.stepSimulation()
   
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
@@ -170,17 +170,19 @@ class StepCoopEnv(ResetCoopEnv):
     jac = jac[:, :7]
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
-    if robotId == self.robotId_A:
-      desired_ee_wrench = np.array(action[:6])
-      # desired_ee_wrench = np.array(action[:6])
+    if self.standard_control:
+      desired_ee_wrench = self.ComputeDesiredEEWrench(p)
+      print("###################")
+      print(desired_ee_wrench)
     else:
-      disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      desired_ee_wrench = self.desired_eeB_wrench + disturbance
+      desired_ee_wrench = np.array(action[:6])
+    # desired_ee_wrench = np.array(action[:6])
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
     dyn_ctnt_inv = np.eye(6)
-    desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+    # desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+    desired_joint_torques = np.zeros((7,))
     return desired_joint_torques[:self.numJoints]
   
   def getJointStates(self, robotId, p):
@@ -189,15 +191,6 @@ class StepCoopEnv(ResetCoopEnv):
     joint_velocities = [state[1] for state in joint_states]
     joint_torques = [state[3] for state in joint_states]
     return joint_positions, joint_velocities, joint_torques
-  
-  def GetObservation(self, p):
-    # ----------------------------- Get model input ----------------------------------
-    self.model_input = np.array([])
-    self.ComputeEnvState(p)
-    self.model_input = np.append(self.model_input, np.array(self.desired_eeA_pose))
-    self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
-    assert len(self.model_input) == 12
-    return self.model_input
   
   def ComputeEnvState(self, p):
 
@@ -215,18 +208,15 @@ class StepCoopEnv(ResetCoopEnv):
     
 
   
-  # def ComputeDesiredObjectWrench(self, p):
-  #   Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
-  #   Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
-  #   self.obj_pose_error = np.array(self.GetPoseError())# + self.action
-  #   obj_vel_error = self.env_state["object_velocity"]
-  #   for i in range(len(obj_vel_error)):
-  #     obj_vel_error[i] = -obj_vel_error[i]
-  #   obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
-  #   obj_mass_matrix = np.eye(6)
-  #   desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
-  #   # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
-  #   self.desired_obj_wrench = desired_obj_wrench
-  #   return desired_obj_wrench
+  def ComputeDesiredEEWrench(self, p):
+    Kp = 5.6 * np.array([2, 2, 10, 1.5, 1.5, 10.5])
+    Kv = 5.2 * np.array([1.2, 1.2, 2.5, 0.2, 0.1, 0.1])
+    self.eeA_pose_error = np.array(self.GetPoseError())# + self.action
+    eeA_vel_error = self.env_state["robot_A_ee_vel"]
+    for i in range(len(eeA_vel_error)):
+      eeA_vel_error[i] = -eeA_vel_error[i]
+    desired_eeA_wrench = Kp * self.eeA_pose_error + Kv * eeA_vel_error
+    # desired_eeA_wrench = Kp * eeA_pose_error + Kv * eeA_vel_error
+    return desired_eeA_wrench
   
 

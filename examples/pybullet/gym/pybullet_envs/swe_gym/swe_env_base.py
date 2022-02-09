@@ -38,7 +38,8 @@ class CoopEnv(gym.Env):
     assert len(obs_space) == 12
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
-    self.desired_eeA_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
+    self.desired_eeA_pose = [0.2, 0.0, 0.7, 0.0, 0.0, 0.0]
+    # self.desired_eeA_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
     # self.desired_eeA_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
