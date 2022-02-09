@@ -37,17 +37,17 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/13_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = True
+    self.use_hard_data = False
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
-    self.axis = 2
+    self.axis = 0
     self.robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
     self.robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
 
@@ -160,16 +160,16 @@ class StepCoopEnv(ResetCoopEnv):
     # Rewards
     obj_pose_error_norm_reward = -self.obj_pose_error_norm
     
-    scale_factor = 0.05
+    scale_factor = 0.0
     episode_len_reward = 0.05*num_steps
     
     terminal_reward_final_error = 0.0
     if num_steps > self.horizon:
-      terminal_reward_final_error = -5.0*self.obj_pose_error_norm
+      terminal_reward_final_error = -2.0*self.obj_pose_error_norm
     
     terminal_reward_full_horizon = 0.0
     if num_steps > self.horizon:
-      terminal_reward_full_horizon = 5.0
+      terminal_reward_full_horizon = 1.0
 
     reward = 0.0 + obj_pose_error_norm_reward + episode_len_reward + terminal_reward_final_error + terminal_reward_full_horizon
     return reward, self.obj_pose_error_norm
@@ -249,7 +249,7 @@ class StepCoopEnv(ResetCoopEnv):
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
-      desired_ee_wrench[self.axis] = action[0]
+      # desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance

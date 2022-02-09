@@ -2,7 +2,6 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 exp_run = 1
 
 with open('data/rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:

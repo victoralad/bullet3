@@ -18,6 +18,8 @@ from swe_init import InitCoopEnv
 from swe_reset import ResetCoopEnv
 from swe_step import StepCoopEnv
 
+from collections import deque
+
 class CoopEnv(gym.Env):
   """Custom Environment that follows gym interface"""
   metadata = {'render.modes': ['human']}
@@ -34,10 +36,16 @@ class CoopEnv(gym.Env):
     high_action = np.array([max_force] * action_space_size)
     self.action_space = spaces.Box(low_action, high_action)
 
-    # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_obj_pose, measured_ee_pose)]
-    obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force]*force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
-    assert len(obs_space) == 36
-    self.observation_space = spaces.Box(-obs_space, obs_space)
+    # # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_obj_pose, measured_ee_pose)]
+    # obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force]*force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
+    # assert len(obs_space) == 36
+    # self.observation_space = spaces.Box(-obs_space, obs_space)
+
+    self.obs_buffer = deque(np.array([]), maxlen = 10)
+    for i in range(self.obs_buffer.maxlen):
+      self.obs_buffer.append(np.zeros(36,))
+
+    self.observation_space = spaces.Box(low=0, high=255, shape=(self.obs_buffer.maxlen, 36, 1), dtype=np.uint8)
 
     # self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
     # self.desired_obj_pose = [0.5, 0.0, 0.6, 0.0, 0.0, 0.0]
@@ -77,6 +85,18 @@ class CoopEnv(gym.Env):
     self.action_ep += [action]
 
 
+    self.obs_buffer.append(observation)
+    img_observation = np.array(self.obs_buffer)
+    mat_norm = np.linalg.norm(img_observation)
+    img_observation -= np.amin(img_observation)
+    img_observation /= mat_norm
+    img_observation *= 255
+    img_observation = np.reshape(img_observation, (self.obs_buffer.maxlen, 36, 1))
+
+    # print("Yeeeeeeeeeeeeeeeeeeeeee")
+    # print(np.amin(img_observation), np.amax(img_observation))
+
+
     done, info = self.step_coop_env.GetInfo(p, self.num_steps_in_episode)
     self.obj_pose_error_norm_episode_sum += obj_pose_error_norm
     self.sum_reward += reward
@@ -90,7 +110,7 @@ class CoopEnv(gym.Env):
     print("Reward:", reward)
     print("")
     print("Info:", info)
-    return observation, reward, done, info
+    return img_observation, reward, done, info
 
   def reset(self):
     print("------------- Resetting environment, Episode: {} --------------".format(self.num_episodes))
@@ -127,7 +147,18 @@ class CoopEnv(gym.Env):
     
     self.reset_coop_env.ResetCoop(p)
     observation = self.reset_coop_env.GetObservation(p)
-    return observation  # reward, done, info can't be included
+
+    for i in range(self.obs_buffer.maxlen):
+      self.obs_buffer.append(np.zeros(36,))
+    
+    self.obs_buffer.append(observation)
+    img_observation = np.array(self.obs_buffer)
+    img_observation -= np.amin(img_observation)
+    img_observation /= np.linalg.norm(img_observation)
+    img_observation *= 255
+    img_observation = np.reshape(img_observation, (self.obs_buffer.maxlen, 36, 1))
+
+    return img_observation  # reward, done, info can't be included
 
   def render(self, mode='human', close=False):
     pass
