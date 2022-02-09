@@ -28,27 +28,23 @@ class CoopEnv(gym.Env):
     # They must be gym.spaces objects
     num_robots = 2
     force_vec_len = 6
-    max_force = 0.5
+    max_force = 2.5
     low_action = np.array([-max_force] * force_vec_len)
     high_action = np.array([max_force] * force_vec_len)
     self.action_space = spaces.Box(low_action, high_action)
 
-    # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_obj_pose, measured_ee_pose)]
-    obs_space = np.array([2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
-    # obs_space = np.array([max_force]*force_vec_len * num_robots + [max_force]*force_vec_len + [2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 3)
-    assert len(obs_space) == 18
+    # obs_space = [(Fc_1, Fc_2), Measured F_1/T_1, (measured_obj_pose, desired_eeA_pose, measured_ee_pose)]
+    obs_space = np.array([2.0, 2.0, 2.0, 3.14, 3.14, 3.14] * 2)
+    assert len(obs_space) == 12
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
-    # self.desired_obj_pose = [0.5, -0.5, 0.3, 0.0, 0.0, 0.0]
-    # self.desired_obj_pose = [0.5, 0.0, 0.6, 0.0, 0.0, 0.0]
-    # self.desired_obj_pose = [0.5, 0.3, 0.3, 0.0, 0.0, 0.0]
-    self.desired_obj_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 1.571]
-    # self.desired_obj_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
+    self.desired_eeA_pose = [0.5, 0.0, 0.3, 0.0, 0.0, 0.0]
+    # self.desired_eeA_pose = [0.7, 0.0, 0.4, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
-    self.reset_coop_env = ResetCoopEnv(self.desired_obj_pose, p)
-    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, self.desired_obj_pose, p)
+    self.reset_coop_env = ResetCoopEnv(self.desired_eeA_pose, p)
+    self.step_coop_env = StepCoopEnv(self.reset_coop_env.robots, self.reset_coop_env.grasped_object, self.reset_coop_env.ft_id, self.desired_eeA_pose, p)
 
     self.num_episodes = 0
     self.time_step = 1
@@ -87,11 +83,6 @@ class CoopEnv(gym.Env):
     print("------------- Resetting environment, Episode: {} --------------".format(self.num_episodes))
     self.num_episodes += 1.0
 
-    # avg_reward = self.sum_reward / self.num_steps_in_episode
-    # self.reward_data[0] += [self.num_episodes]
-    # self.reward_data[1] += [avg_reward]
-    # self.sum_reward = 0.0
-
     
     self.mean_obj_pose_error_norm_data[0] += [self.num_episodes]
     self.mean_obj_pose_error_norm_data[1] += [self.obj_pose_error_norm_episode_sum / self.num_steps_in_episode]
@@ -109,13 +100,3 @@ class CoopEnv(gym.Env):
 
   def render(self, mode='human', close=False):
     pass
-
-# if __name__ == '__main__':
-#   coop = CoopEnv()
-#   coop.reset()
-#   action = [0.1]*12
-#   coop.step(action)
-#   while 1:
-#       a = 1
-#     # coop.reset(p)
-#     # coop.step()
