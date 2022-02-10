@@ -11,8 +11,8 @@ class InitCoopEnv:
 
   def __init__(self, p):
     p.loadURDF("plane.urdf", [0, 0, 0.0], useFixedBase=True)
-    self.kukaId_A = p.loadURDF("franka_panda/panda.urdf", [0, -0.3, 0], useFixedBase=True)
-    self.kukaId_B = p.loadURDF("franka_panda/panda.urdf", [0, 2.3, 0], useFixedBase=True)
+    self.kukaId_A = p.loadURDF("franka_panda/panda.urdf", [0, -0.3, 0], useFixedBase=True, flags=p.URDF_USE_SELF_COLLISION)
+    self.kukaId_B = p.loadURDF("franka_panda/panda.urdf", [0, 2.3, 0], useFixedBase=True, flags=p.URDF_USE_SELF_COLLISION)
 
     self.grasped_object = p.loadURDF("va_kuka_robot/grasp_object.urdf", [2.7, 0.0, 0.02], [0, 0, 1, 1], useFixedBase=False)
 
@@ -24,6 +24,8 @@ class InitCoopEnv:
     self.numJoints = 7
 
     self.joints_A = self.GetJointInfo(self.kukaId_A, p)
+    # print(self.joints_A)
+    # quit()
     self.joints_B = self.GetJointInfo(self.kukaId_B, p)
 
     # Enable force torque sensor for the sensor joint.

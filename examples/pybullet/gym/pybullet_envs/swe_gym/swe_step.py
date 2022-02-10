@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 200
+    self.horizon = 2000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
@@ -52,7 +52,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.eeA_pose_error = None
     self.eeA_pose_error_norm = None
     self.prev_eeA_pos = np.zeros((6,))
-    self.standard_control = True
+    self.standard_control = False
 
     # p.setRealTimeSimulation(1)
 
@@ -66,7 +66,7 @@ class StepCoopEnv(ResetCoopEnv):
     
     if (self.useSimulation):
       for _ in range(1):
-        p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.0]*self.numJoints)
+        p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
         p.setJointMotorControlArray(bodyIndex=self.robotId_A,
                               jointIndices=list(range(self.numJoints)),
                               controlMode=p.TORQUE_CONTROL,
@@ -99,19 +99,20 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Get pose error of the bar and done condition
     self.eeA_pose_error = self.GetPoseError()
-    self.eeA_pose_error_norm = min(np.linalg.norm(self.eeA_pose_error), 2.0)
+    self.eeA_pose_error_norm = np.linalg.norm(self.eeA_pose_error) #min(np.linalg.norm(self.eeA_pose_error), 2.0)
+    eeA_pose_error_norm_reward = -1.0*self.eeA_pose_error_norm
 
     # reward to penalize high velocities
-    velocity = np.array(self.env_state["robot_A_ee_pose"]) - self.prev_eeA_pos
+    velocity = np.array(self.env_state["robot_A_ee_vel"])
     velocity_norm = np.linalg.norm(velocity)
-    self.prev_eeA_pos = np.array(self.env_state["robot_A_ee_pose"])
-    
-    self.terminal_reward = 0.0
-    if num_steps > 200 and self.eeA_pose_error_norm < 0.05:
-      self.terminal_reward = 10.0
-    argument = 0.003 * (num_steps - self.horizon)
-    decay = np.exp(argument)
-    reward = 2.0 - 10*self.eeA_pose_error_norm + self.terminal_reward #- self.ee_constraint_reward - velocity_norm**2
+    velocity_norm_reward = -velocity_norm**2
+
+    # terminal OPEN reward
+    terminal_eeA_reward = 0.0
+    if num_steps > self.horizon:
+      terminal_eeA_reward = -10.0*self.eeA_pose_error_norm**2
+
+    reward = 10.0 + eeA_pose_error_norm_reward + velocity_norm_reward + terminal_eeA_reward
     return reward, self.eeA_pose_error_norm
 
   def GetPoseError(self):
@@ -136,9 +137,9 @@ class StepCoopEnv(ResetCoopEnv):
     #   done = True
     #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
     #           3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-    elif norm > 2.0:
-      done = True
-      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+    # elif norm > 2.0:
+    #   done = True
+    #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
     # elif self.ee_constraint_reward > 0.1:
     #   done = True
     #   info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
@@ -168,12 +169,14 @@ class StepCoopEnv(ResetCoopEnv):
     
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     jac = jac[:, :7]
-    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
+    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, zero_vec, zero_vec)
+    print("###################")
+    print(joints_pos)
     nonlinear_forces = nonlinear_forces[:7]
     if self.standard_control:
       desired_ee_wrench = self.ComputeDesiredEEWrench(p)
-      print("###################")
-      print(desired_ee_wrench)
+      # print("###################")
+      # print(desired_ee_wrench)
     else:
       desired_ee_wrench = np.array(action[:6])
     # desired_ee_wrench = np.array(action[:6])
@@ -181,8 +184,9 @@ class StepCoopEnv(ResetCoopEnv):
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
     dyn_ctnt_inv = np.eye(6)
-    # desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
-    desired_joint_torques = np.zeros((7,))
+    desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+    # desired_joint_torques = np.zeros((7,))
+    # desired_joint_torques = nonlinear_forces
     return desired_joint_torques[:self.numJoints]
   
   def getJointStates(self, robotId, p):
