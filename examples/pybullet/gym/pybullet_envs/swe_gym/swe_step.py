@@ -107,18 +107,17 @@ class StepCoopEnv(ResetCoopEnv):
     else:
       if (self.useSimulation):
         for _ in range(1):
-          for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
-            p.setJointMotorControl2(bodyIndex=self.robotId_A,
-                                  jointIndex=i,
-                                  controlMode=p.TORQUE_CONTROL,
-                                  force=computed_joint_torques_robot_A[i])
-
-            p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.02)
-            p.setJointMotorControl2(bodyIndex=self.robotId_B,
-                                  jointIndex=i,
-                                  controlMode=p.TORQUE_CONTROL,
-                                  force=computed_joint_torques_robot_B[i])
+          p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_A,
+                             jointIndices=list(range(self.numJoints)),
+                             controlMode=p.TORQUE_CONTROL,
+                             forces=computed_joint_torques_robot_A)
+          
+          p.setJointMotorControlArray(self.robotId_B, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_B,
+                             jointIndices=list(range(self.numJoints)),
+                             controlMode=p.TORQUE_CONTROL,
+                             forces=computed_joint_torques_robot_B)
           p.stepSimulation()
   
   def GetObservation(self, p):
@@ -342,17 +341,22 @@ class StepCoopEnv(ResetCoopEnv):
     return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
-    Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
+    Kp = 3.2 * np.array([2, 2, 2, 0.5, 0.5, 0.5])
+    Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
     self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
-    # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
-    self.desired_obj_wrench = desired_obj_wrench
+    # desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
+    desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
+    self.desired_obj_wrench = desired_obj_wrench + obj_gravity_vector
+    # print("#####################")
+    # print(self.env_state["object_pose"])
+    # print(self.obj_pose_error)
+    # print(desired_obj_wrench)
+    # quit()
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
