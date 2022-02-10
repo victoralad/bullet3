@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 2000
+    self.horizon = 20000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
@@ -105,14 +105,14 @@ class StepCoopEnv(ResetCoopEnv):
     # reward to penalize high velocities
     velocity = np.array(self.env_state["robot_A_ee_vel"])
     velocity_norm = np.linalg.norm(velocity)
-    velocity_norm_reward = -velocity_norm**2
+    velocity_norm_reward = -0.1*velocity_norm
 
     # terminal OPEN reward
     terminal_eeA_reward = 0.0
     if num_steps > self.horizon:
-      terminal_eeA_reward = -10.0*self.eeA_pose_error_norm**2
+      terminal_eeA_reward = -2.0*self.eeA_pose_error_norm**2
 
-    reward = 10.0 + eeA_pose_error_norm_reward + velocity_norm_reward + terminal_eeA_reward
+    reward = 20.0 + eeA_pose_error_norm_reward + velocity_norm_reward + terminal_eeA_reward
     return reward, self.eeA_pose_error_norm
 
   def GetPoseError(self):

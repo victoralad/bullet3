@@ -28,7 +28,7 @@ plt.legend(["Mean OPEN per episode", "Mean reward per episode"])
 plt.title('Overall mean OPEN = {:.3f} \n Overall mean reward = {:.3f}'.format(mean_OPEN, mean_reward))
 
 # Saving the figure.
-plot_num = 1102
+plot_num = 1103
 plt.savefig("data/OPEN_TRAIN_plot_{}.jpg".format(plot_num))
 
 plt.show()
