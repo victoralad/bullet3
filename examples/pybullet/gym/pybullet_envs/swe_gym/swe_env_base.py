@@ -83,7 +83,8 @@ class CoopEnv(gym.Env):
     self.num_steps_in_episode += 1
     print("---------------------------- Step {} ----------------------------".format(self.time_step))
     self.time_step += 1
-    print("Observation:", observation)
+    print("Observation:")
+    print(np.reshape(observation, (-1, 6)))
     print("")
     print("Action:", action)
     print("")

@@ -67,23 +67,21 @@ class StepCoopEnv(ResetCoopEnv):
     
     if self.use_hard_data:
       if (self.useSimulation):
-        for i in range(1):
-          for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
-            p.setJointMotorControl2(bodyIndex=self.robotId_A,
-                                  jointIndex=i,
-                                  controlMode=p.TORQUE_CONTROL,
-                                  force=computed_joint_torques_robot_A[i])
+        for _ in range(1):
+          p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_A,
+                             jointIndices=list(range(self.numJoints)),
+                             controlMode=p.TORQUE_CONTROL,
+                             forces=computed_joint_torques_robot_A)
 
-            p.setJointMotorControl2(bodyIndex=self.robotId_B,
-                                    jointIndex=i,
-                                    controlMode=p.POSITION_CONTROL,
-                                    targetPosition=self.interpol_pos[i],
-                                    targetVelocity=0,
-                                    force=100,
-                                    positionGain=0.1,
-                                    velocityGain=0.5,
-                                    maxVelocity=0.01)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_B,
+                                  jointIndices=i,
+                                  controlMode=p.POSITION_CONTROL,
+                                  targetPositions=self.interpol_pos,
+                                  targetVelocities=[0.0]*self.numJoints,
+                                  forces=[100]*self.numJoints,
+                                  positionGains=[0.1]*self.numJoints,
+                                  velocityGains=[0.5]*self.numJoints)
           p.stepSimulation()
         if self.antag_data_idx < len(self.antag_joint_pos) - 2:
           if self.time_mod < self.hard_to_sim_ratio:
@@ -247,16 +245,25 @@ class StepCoopEnv(ResetCoopEnv):
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      desired_ee_wrench = np.zeros((6,))
+      desired_ee_wrench[2] = 0.4
+
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
       # desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance
+      desired_ee_wrench = np.zeros((6,))
+      desired_ee_wrench[2] = 0.2
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
     # dyn_ctnt_inv = np.eye(6)
+
+    print("####################")
+    print(desired_ee_wrench)
     desired_joint_torques = (jac.T).dot(desired_ee_wrench) + np.array(nonlinear_forces)
+    # desired_joint_torques = nonlinear_forces
     return desired_joint_torques[:self.numJoints]
   
   def getJointStates(self, robotId, p):
@@ -337,8 +344,8 @@ class StepCoopEnv(ResetCoopEnv):
     return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 3.2 * np.array([2, 2, 2, 0.5, 0.5, 0.5])
-    Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
+    Kp = 3.2 * np.array([2, 2, 2, 0.0, 0.0, 0.0])
+    Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.0, 0.0, 0.0])
     self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
