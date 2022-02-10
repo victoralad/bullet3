@@ -47,7 +47,7 @@ class CustomPolicy(FeedForwardPolicy):
 model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1)
 
 # Train the agent
-total_timesteps = 10000
+total_timesteps = 1000000
 model.learn(total_timesteps=total_timesteps)
 
 print("")
