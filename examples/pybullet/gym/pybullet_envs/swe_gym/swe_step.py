@@ -207,10 +207,6 @@ class StepCoopEnv(ResetCoopEnv):
     #   info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     
     self.reset_eps = done
-    if done:
-      print("Dooooooooooooneee")
-      print(info)
-      quit()
     return done, info
 
   def GetInfo(self, p, num_steps):
