@@ -238,32 +238,29 @@ class StepCoopEnv(ResetCoopEnv):
     zero_vec = [0.0] * len(joints_pos)
     jac_t, jac_r = p.calculateJacobian(robotId, self.kukaEndEffectorIndex, frame_pos, joints_pos, zero_vec, zero_vec)
     
-    jac = np.vstack((np.array(jac_t), np.array(jac_r)))
-    jac = jac[:, :7]
+    old_jac = np.vstack((np.array(jac_t), np.array(jac_r)))
+    jac = old_jac[:, :7]
     nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, zero_vec, zero_vec)
-    nonlinear_forces = nonlinear_forces[:7]
+    # nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
-      desired_ee_wrench = np.zeros((6,))
-      desired_ee_wrench[2] = 0.4
 
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
       # desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance
-      desired_ee_wrench = np.zeros((6,))
-      desired_ee_wrench[2] = 0.2
+    
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
-    robot_inertia_matrix = robot_inertia_matrix[:7, :7]
-    # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
-    # dyn_ctnt_inv = np.eye(6)
+    # robot_inertia_matrix = robot_inertia_matrix[:7, :7]
+    robot_inertia_matrix_inv = np.linalg.inv(robot_inertia_matrix)
+    dyn_ctnt_inv = np.linalg.inv(old_jac.dot(robot_inertia_matrix_inv.dot(old_jac.T)))
 
-    print("####################")
-    print(desired_ee_wrench)
-    desired_joint_torques = (jac.T).dot(desired_ee_wrench) + np.array(nonlinear_forces)
-    # desired_joint_torques = nonlinear_forces
+    # desired_ee_wrench = np.zeros((6,))
+    # desired_ee_wrench[2] = 0.1
+
+    desired_joint_torques = (old_jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
     return desired_joint_torques[:self.numJoints]
   
   def getJointStates(self, robotId, p):
@@ -321,6 +318,7 @@ class StepCoopEnv(ResetCoopEnv):
     grasp_matrix = self.ComputeGraspMatrix(p)
     inv_grasp_matrix = np.linalg.pinv(grasp_matrix)
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
+
     assert len(wrench) == 12
     
     # self.desired_eeA_wrench = np.zeros((6,))
@@ -337,29 +335,21 @@ class StepCoopEnv(ResetCoopEnv):
     bottom_three_rows = np.hstack((self.skew(base_disp_vec), np.eye(3)))
     rotWorldToBase = np.vstack((top_three_rows, bottom_three_rows))
     transformed_wrench = rotWorldToBase.dot(np.array(wrench))
-    # print(rotWorldToBase)
-    # print(wrench)
-    # print(transformed_wrench)
-    # quit()
+
     return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 3.2 * np.array([2, 2, 2, 0.0, 0.0, 0.0])
-    Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.0, 0.0, 0.0])
+    Kp = 0.5 * np.array([2, 2, 2, 0.5, 0.5, 0.5])
+    Kv = 0.3 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
     self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    # desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
-    desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
-    self.desired_obj_wrench = desired_obj_wrench + obj_gravity_vector
-    # print("#####################")
-    # print(self.env_state["object_pose"])
-    # print(self.obj_pose_error)
-    # print(desired_obj_wrench)
-    # quit()
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
+    # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error + obj_gravity_vector
+    # desired_obj_wrench = obj_gravity_vector
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
