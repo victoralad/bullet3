@@ -37,13 +37,13 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 200
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/13_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = True
+    self.use_hard_data = False
 
     self.obj_pose_error = [0.0] * 6
     self.obj_pose_error_norm = 0.0
@@ -67,9 +67,9 @@ class StepCoopEnv(ResetCoopEnv):
     
     if self.use_hard_data:
       if (self.useSimulation):
-        for i in range(200):
+        for i in range(1):
           for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
             p.setJointMotorControl2(bodyIndex=self.robotId_A,
                                   jointIndex=i,
                                   controlMode=p.TORQUE_CONTROL,
@@ -243,13 +243,13 @@ class StepCoopEnv(ResetCoopEnv):
     
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     jac = jac[:, :7]
-    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
+    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, zero_vec, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
       desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.zeros((6,)) #self.desired_eeA_wrench
-      desired_ee_wrench[self.axis] = action[0]
+      # desired_ee_wrench[self.axis] = action[0]
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance
@@ -315,17 +315,18 @@ class StepCoopEnv(ResetCoopEnv):
     grasp_matrix = self.ComputeGraspMatrix(p)
     inv_grasp_matrix = np.linalg.pinv(grasp_matrix)
     wrench = inv_grasp_matrix.dot(desired_obj_wrench)
+    assert len(wrench) == 12
     
     # self.desired_eeA_wrench = np.zeros((6,))
     # self.desired_eeA_wrench[self.axis] = self.action[0] 
-    self.desired_eeA_wrench = self.ToBaseFrame(wrench[:6], "robotA", p)
-    self.desired_eeB_wrench = self.ToBaseFrame(wrench[6:], "robotB", p)
+    self.desired_eeA_wrench = wrench[:6] #self.ToBaseFrame(wrench[:6], "robotA", p)
+    self.desired_eeB_wrench = wrench[6:] #self.ToBaseFrame(wrench[6:], "robotB", p)
   
   def ToBaseFrame(self, wrench, robotId, p):
     if robotId == "robotA":
-      base_disp_vec = -np.array((self.robotA_base)[0])
+      base_disp_vec = np.array((self.robotA_base)[0])
     elif robotId == "robotB":
-      base_disp_vec = -np.array((self.robotB_base)[0])
+      base_disp_vec = np.array((self.robotB_base)[0])
     top_three_rows = np.hstack((np.eye(3), np.zeros((3, 3))))
     bottom_three_rows = np.hstack((self.skew(base_disp_vec), np.eye(3)))
     rotWorldToBase = np.vstack((top_three_rows, bottom_three_rows))
