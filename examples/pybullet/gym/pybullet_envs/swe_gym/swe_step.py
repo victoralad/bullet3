@@ -37,9 +37,12 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.1]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 300
+    self.horizon = 9000
     self.env_state = {}
     self.ComputeEnvState(p)
+
+    self.prev_obj_pose = [0, 0, 0]
+    self.hasPrevPose = 1
 
 
   def apply_action(self, action, p):
@@ -50,15 +53,15 @@ class StepCoopEnv(ResetCoopEnv):
     computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
     
     if (self.useSimulation):
-      for i in range(200):
+      for _ in range(1):
         for i in range(self.numJoints):
-          p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+          p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
           p.setJointMotorControl2(bodyIndex=self.robotId_A,
                                 jointIndex=i,
                                 controlMode=p.TORQUE_CONTROL,
                                 force=computed_joint_torques_robot_A[i])
 
-          p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.5)
+          p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.02)
           p.setJointMotorControl2(bodyIndex=self.robotId_B,
                                 jointIndex=i,
                                 controlMode=p.TORQUE_CONTROL,
@@ -75,6 +78,17 @@ class StepCoopEnv(ResetCoopEnv):
     self.model_input = np.append(self.model_input, np.array(self.env_state["object_pose"]))
     self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
+
+    if (self.hasPrevPose):
+      #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
+      #use 0 for no-removal
+      trailDuration = 10000
+      p.addUserDebugLine((self.desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
+      # p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
+      # self.prev_obj_pose = (self.env_state["object_pose"])[:3]
+      # self.prevPose1_A = ls_A[4]
+      self.hasPrevPose = 0
+    
     assert len(self.model_input) == 36
     return self.model_input
   
@@ -115,17 +129,20 @@ class StepCoopEnv(ResetCoopEnv):
     if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
-    elif norm > 2.0 and self.ee_constraint_reward > 0.05:
+    elif norm > 10.0 and self.ee_constraint_reward > 0.1:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
               3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-    elif norm > 2.0:
+    elif norm > 10.0:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
-    elif self.ee_constraint_reward > 0.05:
+    elif self.ee_constraint_reward > 0.1:
       done = True
       info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
 
+    # if done:
+    #   print(info)
+    #   quit()
     return done, info
 
   def GetInfo(self, p, num_steps):
@@ -164,7 +181,7 @@ class StepCoopEnv(ResetCoopEnv):
     
     jac = np.vstack((np.array(jac_t), np.array(jac_r)))
     jac = jac[:, :7]
-    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, joints_vel, zero_vec)
+    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, zero_vec, zero_vec)
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.desired_eeA_wrench = np.array(self.ComputeWrenchFromGraspMatrix(robotId, p))
@@ -172,7 +189,7 @@ class StepCoopEnv(ResetCoopEnv):
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       self.desired_eeB_wrench = self.ComputeWrenchFromGraspMatrix(robotId, p)
-      desired_ee_wrench = self.desired_eeB_wrench + disturbance
+      desired_ee_wrench = self.desired_eeB_wrench# + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
@@ -240,17 +257,19 @@ class StepCoopEnv(ResetCoopEnv):
       return wrench[6:]
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
-    Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
+    Kp = 5.6 * np.array([2, 2, 2, 10.5, 1.5, 1.5])
+    Kv = 0.2 * np.array([1.2, 1.2, 2.5, 0.2, 0.1, 0.1])
     obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
     # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
-    self.desired_obj_wrench = desired_obj_wrench
+    # desired_obj_wrench = obj_gravity_vector
+    # desired_obj_wrench = np.zeros((6,))
+    # desired_obj_wrench[2] = 6.0
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
