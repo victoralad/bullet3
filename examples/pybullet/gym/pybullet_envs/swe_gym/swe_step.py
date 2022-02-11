@@ -233,15 +233,15 @@ class StepCoopEnv(ResetCoopEnv):
     return obj_pose_error
   
   def ComputeDesiredEEWrench(self, p):
-    Kp = 8.6 * np.array([5, 5, 5, 1.5, 1.5, 1.5])
-    Kv = 8.2 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
+    Kp = 0.6 * np.array([5, 5, 5, 1.5, 1.5, 1.5])
+    Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
     self.obj_pose_error = np.array(self.GetObjPoseError())# + self.action
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     # desired_eeA_wrench = Kp * self.eeA_pose_error + Kv * eeA_vel_error
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
-    # obj_mass_matrix = np.eye(6)
+    obj_mass_matrix = np.eye(6)
     desired_eeA_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
     # desired_eeA_wrench = obj_gravity_vector
     print(desired_eeA_wrench)
