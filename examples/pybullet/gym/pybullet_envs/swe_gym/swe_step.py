@@ -34,7 +34,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.mean_dist = [0.0]*6
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
-    self.horizon = 20000
+    self.horizon = 9000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -195,11 +195,11 @@ class StepCoopEnv(ResetCoopEnv):
     if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
-    # elif norm > 2.0 and self.ee_constraint_reward > 0.05:
+    # elif norm > 10.0 and self.ee_constraint_reward > 0.05:
     #   done = True
     #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
     #           3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-    elif norm > 2.0:
+    elif norm > 10.0:
       done = True
       info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
     # elif self.ee_constraint_reward > 0.05:
@@ -252,8 +252,8 @@ class StepCoopEnv(ResetCoopEnv):
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench# + disturbance
-    robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
-    robot_inertia_matrix = robot_inertia_matrix[:7, :7]
+    # robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
+    # robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
     # dyn_ctnt_inv = np.eye(6)
     desired_joint_torques = (jac.T).dot(desired_ee_wrench) + np.array(nonlinear_forces)
@@ -337,17 +337,19 @@ class StepCoopEnv(ResetCoopEnv):
     return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 3.2 * np.array([2, 2, 2, 0.5, 0.5, 0.5])
+    Kp = 0.2 * np.array([2, 2, 2, 0.5, 0.5, 0.5])
     Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
+    # Kp = 5.6 * np.array([2, 2, 2, 10.5, 1.5, 1.5])
+    # Kv = 0.2 * np.array([1.2, 1.2, 2.5, 0.2, 0.1, 0.1])
     self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    # desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
-    desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
-    self.desired_obj_wrench = desired_obj_wrench + obj_gravity_vector
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
+    # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
+    # self.desired_obj_wrench = desired_obj_wrench + obj_gravity_vector
     # print("#####################")
     # print(self.env_state["object_pose"])
     # print(self.obj_pose_error)
