@@ -34,7 +34,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.mean_dist = [0.0]*6
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
-    self.horizon = 20000
+    self.horizon = 10000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -64,6 +64,11 @@ class StepCoopEnv(ResetCoopEnv):
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
     computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
+
+    print("###############")
+    print(computed_joint_torques_robot_A)
+    print(computed_joint_torques_robot_B)
+    quit()
     
     if self.use_hard_data:
       if (self.useSimulation):
@@ -230,6 +235,8 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Get the joint and link state directly from Bullet.
     joints_pos, joints_vel, joints_torq = self.getJointStates(robotId, p)
+    print("heyyyy", robotId)
+    print(self.getJointStates(robotId, p))
 
     # Get the Jacobians for the CoM of the end-effector link.
     # Note that in this example com_rot = identity, and we would need to use com_rot.T * com_trn.
@@ -258,7 +265,8 @@ class StepCoopEnv(ResetCoopEnv):
     # desired_joint_torques = (old_jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(old_nonlinear_forces)
 
     desired_ee_wrench = np.zeros((6,))
-    desired_ee_wrench[2] = 0.2
+    # desired_ee_wrench[2] = 1.0
+
     dyn_ctnt_inv = np.eye(6)
     desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
     return desired_joint_torques[:self.numJoints]
@@ -325,6 +333,9 @@ class StepCoopEnv(ResetCoopEnv):
     # self.desired_eeA_wrench[self.axis] = self.action[0] 
     self.desired_eeA_wrench = wrench[:6] #self.ToBaseFrame(wrench[:6], "robotA", p)
     self.desired_eeB_wrench = wrench[6:] #self.ToBaseFrame(wrench[6:], "robotB", p)
+    print("?????????????")
+    print(self.desired_eeA_wrench)
+    print(self.desired_eeB_wrench)
   
   def ToBaseFrame(self, wrench, robotId, p):
     if robotId == "robotA":

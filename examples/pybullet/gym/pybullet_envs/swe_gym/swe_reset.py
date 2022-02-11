@@ -33,14 +33,8 @@ class ResetCoopEnv(InitCoopEnv):
       p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
 
-
-    # # Open gripper
-    # # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
-    # for i in range(20):
-    #   self.gripper(self.kukaId_A, 0.08, p)
-    #   self.gripper(self.kukaId_B, 0.08, p)
-    #   p.stepSimulation()
-
+    # while(1):
+    #   a = 1
 
     # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
     for i in range(40):
@@ -48,41 +42,41 @@ class ResetCoopEnv(InitCoopEnv):
       self.gripper(self.kukaId_B, 0.02, p)
       p.stepSimulation()
     
-    # while(1):
-    #   a = 1
+    # self.CreateConstraint(self.kukaId_A, p)
+    # self.CreateConstraint(self.kukaId_B, p)
 
     # Move the object away from the floor after grasping it
 
     # joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
     # joint_pos_B = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
 
-    joint_pos_A = [0.10073155, -0.14246903, -0.33992083, -2.61260852, -0.20303224, 2.39708345, -0.80150425]
-    joint_pos_B = [0.10073155, -0.14246903, -0.33992083, -2.61260852, -0.20303224, 2.39708345, -0.80150425]
+    # joint_pos_A = [0.10073155, -0.14246903, -0.33992083, -2.61260852, -0.20303224, 2.39708345, -0.80150425]
+    # joint_pos_B = [0.10073155, -0.14246903, -0.33992083, -2.61260852, -0.20303224, 2.39708345, -0.80150425]
 
 
-    for i in range(40):
-      if (self.useSimulation):
-        for i in range(self.numJoints):
-          p.setJointMotorControl2(bodyIndex=self.kukaId_A,
-                                  jointIndex=i,
-                                  controlMode=p.POSITION_CONTROL,
-                                  targetPosition=joint_pos_A[i],
-                                  targetVelocity=0,
-                                  force=100,
-                                  positionGain=0.1,
-                                  velocityGain=0.5,
-                                  maxVelocity=0.01)
+    # for i in range(40):
+    #   if (self.useSimulation):
+    #     for i in range(self.numJoints):
+    #       p.setJointMotorControl2(bodyIndex=self.kukaId_A,
+    #                               jointIndex=i,
+    #                               controlMode=p.POSITION_CONTROL,
+    #                               targetPosition=joint_pos_A[i],
+    #                               targetVelocity=0,
+    #                               force=100,
+    #                               positionGain=0.1,
+    #                               velocityGain=0.5,
+    #                               maxVelocity=0.01)
 
-          p.setJointMotorControl2(bodyIndex=self.kukaId_B,
-                                  jointIndex=i,
-                                  controlMode=p.POSITION_CONTROL,
-                                  targetPosition=joint_pos_B[i],
-                                  targetVelocity=0,
-                                  force=100,
-                                  positionGain=0.1,
-                                  velocityGain=0.5,
-                                  maxVelocity=0.01)
-      p.stepSimulation()
+    #       p.setJointMotorControl2(bodyIndex=self.kukaId_B,
+    #                               jointIndex=i,
+    #                               controlMode=p.POSITION_CONTROL,
+    #                               targetPosition=joint_pos_B[i],
+    #                               targetVelocity=0,
+    #                               force=100,
+    #                               positionGain=0.1,
+    #                               velocityGain=0.5,
+    #                               maxVelocity=0.01)
+    #   p.stepSimulation()
     # while(1):
     #   a = 1
 
@@ -216,26 +210,26 @@ class ResetCoopEnv(InitCoopEnv):
     obj_gravity_vector = obj_mass * np.array([0.0, 0.0, 9.81, 0.0, 0.0, 0.0])
     return obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector
 
-  # def CreateConstraint(self, robotId, p):
-  #   #create a constraint to keep the fingers centered
-  #   if robotId == self.kukaId_A:
-  #     a = self.bullet_client.createConstraint(self.kukaId_A,
-  #                       9,
-  #                       self.kukaId_A,
-  #                       10,
-  #                       jointType=self.bullet_client.JOINT_GEAR,
-  #                       jointAxis=[1, 0, 0],
-  #                       parentFramePosition=[0, 0, 0],
-  #                       childFramePosition=[0, 0, 0])
-  #     self.bullet_client.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=50)
+  def CreateConstraint(self, robotId, p):
+    #create a constraint to keep the fingers centered
+    if robotId == self.kukaId_A:
+      a = p.createConstraint(self.kukaId_A,
+                        9,
+                        self.kukaId_A,
+                        10,
+                        jointType=p.JOINT_GEAR,
+                        jointAxis=[1, 0, 0],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+      p.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=100)
     
-  #   if robotId == self.kukaId_B:
-  #     b = self.bullet_client.createConstraint(self.kukaId_B,
-  #                       9,
-  #                       self.kukaId_B,
-  #                       10,
-  #                       jointType=self.bullet_client.JOINT_GEAR,
-  #                       jointAxis=[1, 0, 0],
-  #                       parentFramePosition=[0, 0, 0],
-  #                       childFramePosition=[0, 0, 0])
-  #     self.bullet_client.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=50)
+    if robotId == self.kukaId_B:
+      b = p.createConstraint(self.kukaId_B,
+                        9,
+                        self.kukaId_B,
+                        10,
+                        jointType=p.JOINT_GEAR,
+                        jointAxis=[1, 0, 0],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+      p.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=100)
