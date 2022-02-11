@@ -215,3 +215,27 @@ class ResetCoopEnv(InitCoopEnv):
     obj_coriolis_vector = np.hstack((np.zeros(3), body_omega_transformed))
     obj_gravity_vector = obj_mass * np.array([0.0, 0.0, 9.81, 0.0, 0.0, 0.0])
     return obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector
+
+  # def CreateConstraint(self, robotId, p):
+  #   #create a constraint to keep the fingers centered
+  #   if robotId == self.kukaId_A:
+  #     a = self.bullet_client.createConstraint(self.kukaId_A,
+  #                       9,
+  #                       self.kukaId_A,
+  #                       10,
+  #                       jointType=self.bullet_client.JOINT_GEAR,
+  #                       jointAxis=[1, 0, 0],
+  #                       parentFramePosition=[0, 0, 0],
+  #                       childFramePosition=[0, 0, 0])
+  #     self.bullet_client.changeConstraint(a, gearRatio=-1, erp=0.1, maxForce=50)
+    
+  #   if robotId == self.kukaId_B:
+  #     b = self.bullet_client.createConstraint(self.kukaId_B,
+  #                       9,
+  #                       self.kukaId_B,
+  #                       10,
+  #                       jointType=self.bullet_client.JOINT_GEAR,
+  #                       jointAxis=[1, 0, 0],
+  #                       parentFramePosition=[0, 0, 0],
+  #                       childFramePosition=[0, 0, 0])
+  #     self.bullet_client.changeConstraint(b, gearRatio=-1, erp=0.1, maxForce=50)
