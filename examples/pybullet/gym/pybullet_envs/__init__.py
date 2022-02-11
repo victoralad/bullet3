@@ -222,7 +222,7 @@ register(id='HumanoidFlagrunHarderBulletEnv-v0',
 
 register(id='CoopEnv-v0',
          entry_point='pybullet_envs.swe_gym.swe_env_base:CoopEnv',
-         max_episode_steps=10000,
+         max_episode_steps=50000,
          reward_threshold=2500.0)
 
 #register(

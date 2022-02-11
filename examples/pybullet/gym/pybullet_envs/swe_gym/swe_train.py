@@ -34,20 +34,20 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 #         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
 #                                            net_arch=[32, 16, dict(pi=[16, 8, 8], vf=[8, 8, 4])],
 #                                            feature_extraction="mlp")
-# class CustomPolicy(FeedForwardPolicy):
-#     def __init__(self, *args, **kwargs):
-#         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
-#                                            net_arch=[8, dict(pi=[8, 8, 6], vf=[4, 4, 1])],
-#                                            feature_extraction="mlp")
-
 class CustomPolicy(FeedForwardPolicy):
     def __init__(self, *args, **kwargs):
         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
-                                           net_arch=[32, 32, dict(pi=[32, 32, 6], vf=[32, 32, 1])],
+                                           net_arch=[16, 8, dict(pi=[4, 4, 1], vf=[2, 1])],
                                            feature_extraction="mlp")
 
-model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
-# model = PPO2(CustomPolicy, env, learning_rate=2.5e-4, verbose=1)
+# class CustomPolicy(FeedForwardPolicy):
+#     def __init__(self, *args, **kwargs):
+#         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
+#                                            net_arch=[32, 32, dict(pi=[32, 32, 6], vf=[32, 32, 1])],
+#                                            feature_extraction="mlp")
+
+# model = PPO2(CustomPolicy, env, learning_rate=2.5e-2, verbose=1, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
+model = PPO2(CustomPolicy, env, learning_rate=2.5e-6, verbose=1)
 
 # Train the agent
 total_timesteps = 1000000
@@ -72,3 +72,6 @@ with open('data/eeA_pose_error.data', 'wb') as filehandle:
 
 with open('data/obtained_reward.data', 'wb') as filehandle:
     pickle.dump(env.reward_data, filehandle)
+
+with open('data/mean_action.data', 'wb') as filehandle:
+    pickle.dump(env.mean_action_data, filehandle)

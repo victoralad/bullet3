@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 20000
+    self.horizon = 9000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
@@ -52,13 +52,14 @@ class StepCoopEnv(ResetCoopEnv):
     self.eeA_pose_error = None
     self.eeA_pose_error_norm = None
     self.prev_eeA_pos = np.zeros((6,))
-    self.standard_control = False
+    self.standard_control = True
+    self.axis = 0
 
     # p.setRealTimeSimulation(1)
 
 
   def apply_action(self, action, p):
-    assert len(action) == 6
+    assert len(action) == 1
     self.action = np.array(action)
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
@@ -77,8 +78,8 @@ class StepCoopEnv(ResetCoopEnv):
   def GetObservation(self, p):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = []
-    self.model_input = np.append(self.model_input, np.array(self.desired_eeA_pose))
-    self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
+    self.model_input = np.append(self.model_input, (np.array(self.desired_eeA_pose))[self.axis])
+    self.model_input = np.append(self.model_input, (np.array(self.env_state["robot_A_ee_pose"]))[self.axis])
 
     if (self.hasPrevPose):
       #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
@@ -90,7 +91,7 @@ class StepCoopEnv(ResetCoopEnv):
       # self.prevPose1_A = ls_A[4]
       self.hasPrevPose = 0
 
-    assert len(self.model_input) == 12
+    assert len(self.model_input) == 2
     return self.model_input
   
   def GetReward(self, p, num_steps):
@@ -99,20 +100,20 @@ class StepCoopEnv(ResetCoopEnv):
 
     # Get pose error of the bar and done condition
     self.eeA_pose_error = self.GetPoseError()
-    self.eeA_pose_error_norm = np.linalg.norm(self.eeA_pose_error) #min(np.linalg.norm(self.eeA_pose_error), 2.0)
-    eeA_pose_error_norm_reward = -1.0*self.eeA_pose_error_norm
+    self.eeA_pose_error_norm = np.linalg.norm(self.eeA_pose_error[self.axis]) #min(np.linalg.norm(self.eeA_pose_error), 2.0)
+    eeA_pose_error_norm_reward = -10.0*self.eeA_pose_error_norm
 
     # reward to penalize high velocities
     velocity = np.array(self.env_state["robot_A_ee_vel"])
-    velocity_norm = np.linalg.norm(velocity)
-    velocity_norm_reward = -0.1*velocity_norm
+    velocity_norm = np.linalg.norm(velocity[self.axis])
+    velocity_norm_reward = -0.0*velocity_norm
 
     # terminal OPEN reward
     terminal_eeA_reward = 0.0
     if num_steps > self.horizon:
-      terminal_eeA_reward = -2.0*self.eeA_pose_error_norm**2
+      terminal_eeA_reward = -100.0*self.eeA_pose_error_norm**2
 
-    reward = 20.0 + eeA_pose_error_norm_reward + velocity_norm_reward + terminal_eeA_reward
+    reward = 10.0 + eeA_pose_error_norm_reward + velocity_norm_reward + terminal_eeA_reward
     return reward, self.eeA_pose_error_norm
 
   def GetPoseError(self):
@@ -129,7 +130,6 @@ class StepCoopEnv(ResetCoopEnv):
 
     done = False
     info = {0: 'Still training'}
-
     if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
@@ -167,24 +167,26 @@ class StepCoopEnv(ResetCoopEnv):
     zero_vec = [0.0] * len(joints_pos)
     jac_t, jac_r = p.calculateJacobian(robotId, self.kukaEndEffectorIndex, frame_pos, joints_pos, zero_vec, zero_vec)
     
-    jac = np.vstack((np.array(jac_t), np.array(jac_r)))
-    jac = jac[:, :7]
-    nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, zero_vec, zero_vec)
-    print("###################")
-    print(joints_pos)
-    nonlinear_forces = nonlinear_forces[:7]
+    old_jac = np.vstack((np.array(jac_t), np.array(jac_r)))
+    jac = old_jac[:, :7]
+    old_nonlinear_forces = p.calculateInverseDynamics(robotId, joints_pos, zero_vec, zero_vec)
+    nonlinear_forces = old_nonlinear_forces[:7]
     if self.standard_control:
       desired_ee_wrench = self.ComputeDesiredEEWrench(p)
-      # print("###################")
-      # print(desired_ee_wrench)
+      print("###################")
+      print(desired_ee_wrench)
     else:
-      desired_ee_wrench = np.array(action[:6])
-    # desired_ee_wrench = np.array(action[:6])
-    robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
-    robot_inertia_matrix = robot_inertia_matrix[:7, :7]
-    # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
+      desired_ee_wrench = self.ComputeDesiredEEWrench(p)
+      desired_ee_wrench[self.axis] = np.array(action[0])
+    
+    # robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
+    # robot_inertia_matrix_inv = np.linalg.inv(robot_inertia_matrix)
+    # dyn_ctnt_inv = np.linalg.inv(old_jac.dot(robot_inertia_matrix_inv.dot(old_jac.T)))
+    # desired_joint_torques = (old_jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(old_nonlinear_forces)
+
     dyn_ctnt_inv = np.eye(6)
     desired_joint_torques = (jac.T.dot(dyn_ctnt_inv)).dot(np.array(desired_ee_wrench)) + np.array(nonlinear_forces)
+
     # desired_joint_torques = np.zeros((7,))
     # desired_joint_torques = nonlinear_forces
     return desired_joint_torques[:self.numJoints]

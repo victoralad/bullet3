@@ -15,6 +15,7 @@ class ResetCoopEnv(InitCoopEnv):
     self.desired_eeA_pose = desired_eeA_pose
     self.env_state = {}
     self.ComputeEnvState(p)
+    self.axis = 0
 
   def ResetCoop(self, p):
     # Reset the object to the grasp location
@@ -36,9 +37,9 @@ class ResetCoopEnv(InitCoopEnv):
     # ----------------------------- Get model input ----------------------------------
     self.model_input = np.array([])
     self.ComputeEnvState(p)
-    self.model_input = np.append(self.model_input, np.array(self.desired_eeA_pose))
-    self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
-    assert len(self.model_input) == 12
+    self.model_input = np.append(self.model_input, (np.array(self.desired_eeA_pose))[self.axis])
+    self.model_input = np.append(self.model_input, (np.array(self.env_state["robot_A_ee_pose"]))[self.axis])
+    assert len(self.model_input) == 2
     return self.model_input
   
   def ComputeEnvState(self, p):

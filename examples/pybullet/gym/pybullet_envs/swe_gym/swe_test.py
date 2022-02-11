@@ -11,7 +11,7 @@ env = gym.make('CoopEnv-v0')
 obs = env.reset()
 max_test_steps = 10000
 while env.time_step < max_test_steps:
-    action, _states = model.predict(obs)
+    action, _states = model.predict(obs, deterministic=True)
     obs, rewards, done, info = env.step(action)
     # grasp fail is mapped to the number 3 in the info dictionary.
     if done:
