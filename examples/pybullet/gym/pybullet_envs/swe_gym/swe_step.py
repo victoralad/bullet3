@@ -337,8 +337,8 @@ class StepCoopEnv(ResetCoopEnv):
     return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 0.2 * np.array([2, 2, 2, 0.5, 0.5, 0.5])
-    Kv = 0.2 * np.array([1.2, 1.2, 1.2, 0.1, 0.1, 0.1])
+    Kp = 5.6 * np.array([2, 2, 2, 1.5, 1.5, 1.5])
+    Kv = 0.2 * np.array([1.2, 1.2, 0.2, 0.5, 0.1, 0.1])
     # Kp = 5.6 * np.array([2, 2, 2, 10.5, 1.5, 1.5])
     # Kv = 0.2 * np.array([1.2, 1.2, 2.5, 0.2, 0.1, 0.1])
     self.obj_pose_error = self.GetPoseError()
@@ -348,12 +348,11 @@ class StepCoopEnv(ResetCoopEnv):
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + obj_gravity_vector
-    # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
-    # self.desired_obj_wrench = desired_obj_wrench + obj_gravity_vector
+    # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error + obj_gravity_vector
+    # desired_obj_wrench = obj_gravity_vector
     # print("#####################")
     # print(self.env_state["object_pose"])
-    # print(self.obj_pose_error)
-    # print(desired_obj_wrench)
+    # print(obj_gravity_vector)
     # quit()
     return desired_obj_wrench
   
