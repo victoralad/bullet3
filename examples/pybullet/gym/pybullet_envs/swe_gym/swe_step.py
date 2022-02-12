@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 4000
+    self.horizon = 9000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -62,9 +62,9 @@ class StepCoopEnv(ResetCoopEnv):
     
     if self.use_hard_data:
       if (self.useSimulation):
-        for i in range(200):
+        for i in range(1):
           for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
             p.setJointMotorControl2(bodyIndex=self.robotId_A,
                                   jointIndex=i,
                                   controlMode=p.TORQUE_CONTROL,
@@ -101,15 +101,15 @@ class StepCoopEnv(ResetCoopEnv):
 
     else:
       if (self.useSimulation):
-        for i in range(200):
+        for i in range(1):
           for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
             p.setJointMotorControl2(bodyIndex=self.robotId_A,
                                   jointIndex=i,
                                   controlMode=p.TORQUE_CONTROL,
                                   force=computed_joint_torques_robot_A[i])
 
-            p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.5)
+            p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.02)
             p.setJointMotorControl2(bodyIndex=self.robotId_B,
                                   jointIndex=i,
                                   controlMode=p.TORQUE_CONTROL,
