@@ -15,29 +15,23 @@ class ResetCoopEnv(InitCoopEnv):
     self.desired_obj_pose = desired_obj_pose
     self.env_state = {}
     self.ComputeEnvState(p)
+    self.constraint_A = self.CreateConstraint(self.kukaId_A, p)
+    self.constraint_B = self.CreateConstraint(self.kukaId_B, p)
 
   def ResetCoop(self, p):
     # Reset the object to the grasp location
     p.resetBasePositionAndOrientation(self.grasped_object, [0, 0.7, 0.02], p.getQuaternionFromEuler([0, 0, 0]))
     # Reset the robots to a position where the grippers can grasp the object
     robot_A_reset = [1.6215659536342868, 0.9575781843548509, -0.14404269719109372, -1.496128956979969, 0.18552992566925916, 2.4407372489326353,
-     1.8958616972085343, 0.01762362413070885, 0.017396558579594615, 0.0, 0.0, 0.0]
+     1.8958616972085343, 0.01762362413070885, 0.017396558579594615, 0.04, 0.04, 0.0]
     
     robot_B_reset = [2.470787979046169, 1.5992683071619733, -1.3190493822244016, -1.3970919589354867, 1.5466399312306398, 1.8048923566089303,
-     1.8741340429221176, 0.04180727854471872, 0.03980317811581496, 0.0, 0.0, 0.0]
+     1.8741340429221176, 0.04180727854471872, 0.03980317811581496, 0.04, 0.04, 0.0]
 
     for i in range(self.totalNumJoints):
       p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
     
-    # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
-    for i in range(20):
-      self.gripper(self.kukaId_A, 0.08, p)
-      self.gripper(self.kukaId_B, 0.08, p)
-      p.stepSimulation()
-    
-    # while 1:
-    #   a = 1
 
     # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
     for i in range(20):
@@ -45,6 +39,9 @@ class ResetCoopEnv(InitCoopEnv):
       self.gripper(self.kukaId_B, 0.02, p)
       p.stepSimulation()
     
+    # p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=50)
+    # p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=50)
+
     # Move the object away from the floor after grasping it
 
     # joint_pos_A = [-1.1706906129781278, -1.1734894538763323, -1.1843647849213839, 1.0369803397881985, 1.0339485888804945, -1.4692204508121034, 1.0414560340680936]
@@ -207,3 +204,26 @@ class ResetCoopEnv(InitCoopEnv):
     obj_coriolis_vector = np.hstack((np.zeros(3), body_omega_transformed))
     obj_gravity_vector = obj_mass * np.array([0.0, 0.0, 9.81, 0.0, 0.0, 0.0])
     return obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector
+  
+  def CreateConstraint(self, robotId, p):
+    #create a constraint to keep the fingers centered
+    if robotId == self.kukaId_A:
+      gripper_constr = p.createConstraint(robotId,
+                        9,
+                        robotId,
+                        10,
+                        jointType=p.JOINT_GEAR,
+                        jointAxis=[1, 0, 0],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+    elif robotId == self.kukaId_B:
+      gripper_constr = p.createConstraint(robotId,
+                        9,
+                        robotId,
+                        10,
+                        jointType=p.JOINT_GEAR,
+                        jointAxis=[1, 0, 0],
+                        parentFramePosition=[0, 0, 0],
+                        childFramePosition=[0, 0, 0])
+    
+    return gripper_constr
