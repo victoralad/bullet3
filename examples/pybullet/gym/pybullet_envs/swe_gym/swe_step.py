@@ -142,7 +142,9 @@ class StepCoopEnv(ResetCoopEnv):
 
     # if done:
     #   print(info)
-    #   quit()
+    #   while 1:
+    #     a = 1
+    #   # quit()
     return done, info
 
   def GetInfo(self, p, num_steps):

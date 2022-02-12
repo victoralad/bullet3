@@ -39,6 +39,7 @@ class CoopEnv(gym.Env):
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
     # self.desired_obj_pose = [0.0, 0.7, 0.4, 0.0, 0.0, 0.0]
+    # self.desired_obj_pose = [0.0, 0.4, 0.6, 0.0, 0.0, 0.0]
     self.desired_obj_pose = [0.0, 0.6, 0.3, 0.0, 0.0, 0.0]
 
     p.connect(p.GUI)
