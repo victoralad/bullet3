@@ -12,7 +12,7 @@ class InitCoopEnv:
   def __init__(self, p):
     p.loadURDF("plane.urdf", [0, 0, 0.0], useFixedBase=True)
     self.kukaId_A = p.loadURDF("franka_panda/panda.urdf", [0.3, 0, 0], useFixedBase=True)
-    self.kukaId_B = p.loadURDF("franka_panda/panda.urdf", [-0.3, 0, 0], useFixedBase=True)
+    self.kukaId_B = p.loadURDF("franka_panda/panda.urdf", [-0.3, 0, 0], [0, 0, 1, 1], useFixedBase=True)
 
     self.grasped_object = p.loadURDF("va_kuka_robot/grasp_object.urdf", [0, 0.7, 0.02], useFixedBase=False)
     p.setGravity(0, 0, -9.81)

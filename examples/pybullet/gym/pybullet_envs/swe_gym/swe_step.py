@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 9000
+    self.horizon = 20000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -44,7 +44,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = True
+    self.use_hard_data = False
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
@@ -58,32 +58,27 @@ class StepCoopEnv(ResetCoopEnv):
     self.action = np.array(action)
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
-    computed_joint_torques_robot_A = np.zeros((7,))
+    # computed_joint_torques_robot_A = np.zeros((7,))
     computed_joint_torques_robot_B = self.GetJointTorques(self.robotId_B, action, p)
-    print("##########################")
-    print(self.antag_joint_pos[self.antag_data_idx])
     
     if self.use_hard_data:
       if (self.useSimulation):
-        for _ in range(200):
-          for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
-            p.setJointMotorControl2(bodyIndex=self.robotId_A,
-                                  jointIndex=i,
-                                  controlMode=p.TORQUE_CONTROL,
-                                  force=computed_joint_torques_robot_A[i])
-
-            # if i == 0:
-            #   self.interpol_pos[i] += 0.1571
-            p.setJointMotorControl2(bodyIndex=self.robotId_B,
-                                    jointIndex=i,
-                                    controlMode=p.POSITION_CONTROL,
-                                    targetPosition=self.interpol_pos[i],
-                                    targetVelocity=0,
-                                    force=100,
-                                    positionGain=0.1,
-                                    velocityGain=0.5,
-                                    maxVelocity=0.01)
+        for _ in range(1):
+          p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_A,
+                                jointIndices=list(range(self.numJoints)),
+                                controlMode=p.TORQUE_CONTROL,
+                                forces=computed_joint_torques_robot_A)
+          p.stepSimulation()
+        for _ in range(1):
+          p.setJointMotorControlArray(bodyIndex=self.robotId_B,
+                                  jointIndices=list(range(self.numJoints)),
+                                  controlMode=p.POSITION_CONTROL,
+                                  targetPositions=self.interpol_pos,
+                                  targetVelocities=[0]*self.numJoints,
+                                  forces=[100]*self.numJoints,
+                                  positionGains=[0.1]*self.numJoints,
+                                  velocityGains=[0.5]*self.numJoints)
           p.stepSimulation()
         if self.antag_data_idx < len(self.antag_joint_pos) - 2:
           if self.time_mod < self.hard_to_sim_ratio:
@@ -106,19 +101,18 @@ class StepCoopEnv(ResetCoopEnv):
 
     else:
       if (self.useSimulation):
-        for i in range(1):
-          for i in range(self.numJoints):
-            p.setJointMotorControl2(self.robotId_A, i, p.VELOCITY_CONTROL, force=0.02)
-            p.setJointMotorControl2(bodyIndex=self.robotId_A,
-                                  jointIndex=i,
-                                  controlMode=p.TORQUE_CONTROL,
-                                  force=computed_joint_torques_robot_A[i])
+        for _ in range(1):
+          p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_A,
+                                jointIndices=list(range(self.numJoints)),
+                                controlMode=p.TORQUE_CONTROL,
+                                forces=computed_joint_torques_robot_A)
 
-            p.setJointMotorControl2(self.robotId_B, i, p.VELOCITY_CONTROL, force=0.02)
-            p.setJointMotorControl2(bodyIndex=self.robotId_B,
-                                  jointIndex=i,
-                                  controlMode=p.TORQUE_CONTROL,
-                                  force=computed_joint_torques_robot_B[i])
+          p.setJointMotorControlArray(self.robotId_B, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
+          p.setJointMotorControlArray(bodyIndex=self.robotId_B,
+                                jointIndices=list(range(self.numJoints)),
+                                controlMode=p.TORQUE_CONTROL,
+                                forces=computed_joint_torques_robot_B)
           p.stepSimulation()
   
   def GetObservation(self, p):

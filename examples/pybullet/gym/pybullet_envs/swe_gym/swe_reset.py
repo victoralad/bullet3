@@ -25,13 +25,14 @@ class ResetCoopEnv(InitCoopEnv):
     robot_A_reset = [1.6215659536342868, 0.9575781843548509, -0.14404269719109372, -1.496128956979969, 0.18552992566925916, 2.4407372489326353,
      1.8958616972085343, 0.01762362413070885, 0.017396558579594615, 0.04, 0.04, 0.0]
     
-    robot_B_reset = [2.470787979046169, 1.5992683071619733, -1.3190493822244016, -1.3970919589354867, 1.5466399312306398, 1.8048923566089303,
-     1.8741340429221176, 0.04180727854471872, 0.03980317811581496, 0.04, 0.04, 0.0]
+    # robot_B_reset = [2.470787979046169, 1.5992683071619733, -1.3190493822244016, -1.3970919589354867, 1.5466399312306398, 1.8048923566089303,
+    #  1.8741340429221176, 0.04180727854471872, 0.03980317811581496, 0.04, 0.04, 0.0]
+
+    robot_B_reset = [0.10073155, 0.86246903, -0.03992083, -1.61260852, -0.10303224, 2.39708345, -0.60150425, 0.0180727854471872, 0.05980317811581496, 0.04, 0.04, 0.0]
 
     for i in range(self.totalNumJoints):
       p.resetJointState(self.kukaId_A, i, robot_A_reset[i])
       p.resetJointState(self.kukaId_B, i, robot_B_reset[i])
-    
 
     # Grasp the object. Require multiple time steps to do so. Hence 20 "ticks" is used.
     for i in range(20):
@@ -39,8 +40,10 @@ class ResetCoopEnv(InitCoopEnv):
       self.gripper(self.kukaId_B, 0.02, p)
       p.stepSimulation()
     
-    # p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=50)
-    # p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=50)
+    # while 1:
+    #   a = 1
+    p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=100)
+    p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=100)
 
     # Move the object away from the floor after grasping it
 
