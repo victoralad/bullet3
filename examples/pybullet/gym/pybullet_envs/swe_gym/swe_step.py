@@ -35,7 +35,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.08]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 20000
+    self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -189,17 +189,18 @@ class StepCoopEnv(ResetCoopEnv):
     if num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
-    # elif norm > 2.0 and self.ee_constraint_reward > 0.05:
-    #   done = True
-    #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
-    #           3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-    # elif norm > 2.0:
-    #   done = True
-    #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
-    # elif self.ee_constraint_reward > 0.05:
-    #   done = True
-    #   info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+    elif norm > 10.0 and self.ee_constraint_reward > 1.0:
+      done = True
+      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
+              3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+    elif norm > 10.0:
+      done = True
+      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+    elif self.ee_constraint_reward > 1.0:
+      done = True
+      info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
     
+
     self.reset_eps = done
     return done, info
 

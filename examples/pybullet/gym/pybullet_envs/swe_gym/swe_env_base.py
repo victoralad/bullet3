@@ -39,7 +39,7 @@ class CoopEnv(gym.Env):
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
 
-    self.desired_obj_pose = [0.0, 0.7, 0.4, 0.0, 0.0, 0.0] # original
+    self.desired_obj_pose = [0.0, 0.5, 0.3, 0.0, 0.0, 0.0] # original
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
