@@ -55,6 +55,6 @@ plt.title('Plot of average object pose error norm \n Number of steps = {}, overa
 
 # Saving the figure.
 plot_num = 1
-plt.savefig("data/ppo2_obj_error_norm_TRAIN_plot_{}.jpg".format(plot_num))
+plt.savefig("data/OPEN_TRAIN_plot_{}.jpg".format(plot_num))
 
 plt.show()

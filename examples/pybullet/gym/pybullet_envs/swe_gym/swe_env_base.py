@@ -28,7 +28,7 @@ class CoopEnv(gym.Env):
     # They must be gym.spaces objects
     num_robots = 2
     force_vec_len = 6
-    max_force = 0.5
+    max_force = 2.5
     low_action = np.array([-max_force] * force_vec_len)
     high_action = np.array([max_force] * force_vec_len)
     self.action_space = spaces.Box(low_action, high_action)
