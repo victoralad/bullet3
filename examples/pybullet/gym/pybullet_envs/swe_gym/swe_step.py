@@ -43,7 +43,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = True
+    self.use_hard_data = False
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose = 1
@@ -55,7 +55,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.final_desired_obj_pose = desired_obj_pose
     self.initial_obj_pose = self.env_state["object_pose"]
     self.desired_obj_pose = self.initial_obj_pose
-    self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:3]) - np.array(self.initial_obj_pose[:3]))
+    self.num_axis = 3
+    self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:self.num_axis]) - np.array(self.initial_obj_pose[:self.num_axis]))
     self.num_steps = None
 
 
@@ -181,7 +182,7 @@ class StepCoopEnv(ResetCoopEnv):
 
   def GetPoseError(self):
     obj_pose_error = [0.0] * 6
-    for i in range(3):
+    for i in range(self.num_axis):
       self.desired_obj_pose[i] = (self.slope[i] * self.num_steps) + self.initial_obj_pose[i]
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
@@ -348,7 +349,8 @@ class StepCoopEnv(ResetCoopEnv):
     obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
     # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
-    self.desired_obj_wrench = desired_obj_wrench
+    # for i in range(3):
+    #   desired_obj_wrench[i+3] = 0.0
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
