@@ -42,8 +42,8 @@ class ResetCoopEnv(InitCoopEnv):
     
     # while 1:
     #   a = 1
-    p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=100)
-    p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=100)
+    p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=200)
+    p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=200)
 
     # Move the object away from the floor after grasping it
 

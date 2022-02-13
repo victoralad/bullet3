@@ -46,15 +46,16 @@ class StepCoopEnv(ResetCoopEnv):
     self.use_hard_data = False
 
     self.prev_obj_pose = [0, 0, 0]
-    self.hasPrevPose = 1
+    self.hasPrevPose1 = 1
+    self.hasPrevPose2 = 1
 
     self.robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
     self.robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
     self.obj_pose_error = None
     self.obj_pose_error_norm = None
     self.final_desired_obj_pose = desired_obj_pose
-    self.initial_obj_pose = self.env_state["object_pose"]
-    self.desired_obj_pose = self.initial_obj_pose
+    self.initial_obj_pose = copy.copy(self.env_state["object_pose"])
+    self.desired_obj_pose = copy.copy(self.initial_obj_pose)
     self.num_axis = 3
     self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:self.num_axis]) - np.array(self.initial_obj_pose[:self.num_axis]))
     self.num_steps = None
@@ -145,15 +146,23 @@ class StepCoopEnv(ResetCoopEnv):
     self.model_input = np.append(self.model_input, np.array(self.desired_obj_pose))
     self.model_input = np.append(self.model_input, np.array(self.env_state["robot_A_ee_pose"]))
 
-    if (self.hasPrevPose):
+    if (self.hasPrevPose1):
       #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
       #use 0 for no-removal
       trailDuration = 10000
       p.addUserDebugLine((self.final_desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
-      # p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
-      # self.prev_obj_pose = (self.env_state["object_pose"])[:3]
-      # self.prevPose1_A = ls_A[4]
-      self.hasPrevPose = 0
+      self.hasPrevPose1 = 0
+
+    # if (self.reset_eps == False and self.hasPrevPose2):
+    #   #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
+    #   #use 0 for no-removal
+    #   trailDuration = 10000
+    #   print("####################")
+    #   print(self.desired_obj_pose[:3])
+    #   print(self.initial_obj_pose[:3])
+    #   p.addUserDebugLine(self.desired_obj_pose[:3], self.initial_obj_pose[:3], [0.2, 0, 0.8], 2, trailDuration)
+    # else:
+    #   self.hasPrevPose2 = 0
 
     assert len(self.model_input) == 36
     return self.model_input
@@ -184,6 +193,8 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error = [0.0] * 6
     for i in range(self.num_axis):
       self.desired_obj_pose[i] = (self.slope[i] * self.num_steps) + self.initial_obj_pose[i]
+    print("#######################")
+    print(self.desired_obj_pose)
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     for i in range(3):
@@ -208,9 +219,16 @@ class StepCoopEnv(ResetCoopEnv):
     elif self.ee_constraint_reward > 1.0:
       done = True
       info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-    
 
+    if done:
+      self.desired_obj_pose = copy.copy(self.initial_obj_pose)
+      
     self.reset_eps = done
+
+    # if done:
+    #   print(info)
+    #   quit()
+
     return done, info
 
   def GetInfo(self, p):
@@ -339,8 +357,14 @@ class StepCoopEnv(ResetCoopEnv):
    return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
-    Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
+    # Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
+    # Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
+
+    # Kp = 0.6 * np.array([12, 12, 12, 0, 0, 0])
+    # Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0, 0, 0])
+    Kp = 0.3 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
+    Kv = 1.6 * np.array([1.2, 1.2, 1.5, 1.2, 1.2, 1.2])
+
     self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
@@ -348,9 +372,9 @@ class StepCoopEnv(ResetCoopEnv):
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
     desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
-    # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
     # for i in range(3):
-    #   desired_obj_wrench[i+3] = 0.0
+    #   desired_obj_wrench[i+3] = 0
+
     return desired_obj_wrench
   
   def ComputeGraspMatrix(self, p):
