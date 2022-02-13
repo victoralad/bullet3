@@ -178,7 +178,6 @@ class StepCoopEnv(ResetCoopEnv):
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     for i in range(3):
-      obj_pose_error[i + 3] = self.desired_obj_pose[i+3] - (self.env_state["object_pose"])[i+3]
       obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
     # print("******************************")
     # print(self.env_state["object_pose"])
@@ -337,8 +336,8 @@ class StepCoopEnv(ResetCoopEnv):
     return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    Kp = 5.6 * np.array([2, 2, 2, 1.5, 1.5, 1.5])
-    Kv = 0.2 * np.array([1.2, 1.2, 0.2, 0.5, 0.1, 0.1])
+    Kp = 5.6 * np.array([2, 2, 2, 1.5, 10.5, 1.5])
+    Kv = 0.2 * np.array([1.2, 1.2, 2.5, 0.1, 0.2, 0.1])
     # Kp = 5.6 * np.array([2, 2, 2, 10.5, 1.5, 1.5])
     # Kv = 0.2 * np.array([1.2, 1.2, 2.5, 0.2, 0.1, 0.1])
     self.obj_pose_error = self.GetPoseError()
