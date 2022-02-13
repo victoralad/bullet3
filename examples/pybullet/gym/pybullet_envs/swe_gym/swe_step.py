@@ -22,7 +22,6 @@ class StepCoopEnv(ResetCoopEnv):
     self.useSimulation = 1
     self.ft_id = ft_id # F/T sensor joint id.
     self.grasped_object = grasped_object
-    self.desired_obj_pose = desired_obj_pose
     self.constraint_set = False
     self.ee_constraint = 0
     self.ee_constraint_reward = 0 # This helps ensure that the grasp constraint is not violated.
@@ -51,14 +50,22 @@ class StepCoopEnv(ResetCoopEnv):
 
     self.robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
     self.robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
+    self.obj_pose_error = None
+    self.obj_pose_error_norm = None
+    self.final_desired_obj_pose = desired_obj_pose
+    self.initial_obj_pose = self.env_state["object_pose"]
+    self.desired_obj_pose = self.initial_obj_pose
+    self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:3]) - np.array(self.initial_obj_pose[:3]))
+    self.num_steps = None
 
 
     # p.setRealTimeSimulation(1)
 
 
-  def apply_action(self, action, p):
+  def apply_action(self, action, num_steps, p):
     assert len(action) == 6
     self.action = np.array(action)
+    self.num_steps = num_steps
     self.ComputeEnvState(p)
     computed_joint_torques_robot_A = self.GetJointTorques(self.robotId_A, action, p)
     # computed_joint_torques_robot_A = np.zeros((7,))
@@ -141,7 +148,7 @@ class StepCoopEnv(ResetCoopEnv):
       #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
       #use 0 for no-removal
       trailDuration = 10000
-      p.addUserDebugLine((self.desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
+      p.addUserDebugLine((self.final_desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
       # p.addUserDebugLine(self.prevPose1_A, ls_A[4], [1, 0, 0], 1, trailDuration)
       # self.prev_obj_pose = (self.env_state["object_pose"])[:3]
       # self.prevPose1_A = ls_A[4]
@@ -150,7 +157,7 @@ class StepCoopEnv(ResetCoopEnv):
     assert len(self.model_input) == 36
     return self.model_input
   
-  def GetReward(self, p, num_steps):
+  def GetReward(self, p):
     reward = 0.0
 
     # Reward to force the agent to try to maintain a rigid grasp. @Alberta, you may ignore this when computing the overall reward.
@@ -162,31 +169,32 @@ class StepCoopEnv(ResetCoopEnv):
     ee_constr_reward = -self.ee_constraint_reward
 
     # Get pose error of the bar and done condition
-    obj_pose_error = self.GetPoseError()
-    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
+    self.obj_pose_error_norm = np.linalg.norm(self.obj_pose_error)
     
     self.terminal_reward = 0.0
-    if num_steps > self.horizon:
+    if self.num_steps > self.horizon:
       self.terminal_reward = 10.0
-    argument = 0.003 * (num_steps - self.horizon)
-    decay = np.exp(argument)
-    reward = 4.0 - obj_pose_error_norm**2 + self.terminal_reward
-    return reward, obj_pose_error_norm
+    # argument = 0.003 * (self.num_steps - self.horizon)
+    # decay = np.exp(argument)
+    reward = 4.0 - self.obj_pose_error_norm**2 + self.terminal_reward
+    return reward, self.obj_pose_error_norm
 
   def GetPoseError(self):
     obj_pose_error = [0.0] * 6
+    for i in range(3):
+      self.desired_obj_pose[i] = (self.slope[i] * self.num_steps) + self.initial_obj_pose[i]
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     for i in range(3):
       obj_pose_error[i + 3] = math.fmod(obj_pose_error[i+3] + math.pi + 2*math.pi, 2*math.pi) - math.pi
     return obj_pose_error
 
-  def CheckDone(self, norm, num_steps):
+  def CheckDone(self, norm):
 
     done = False
     info = {0: 'Still training'}
 
-    if num_steps > self.horizon:
+    if self.num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
     elif norm > 10.0 and self.ee_constraint_reward > 1.0:
@@ -204,11 +212,9 @@ class StepCoopEnv(ResetCoopEnv):
     self.reset_eps = done
     return done, info
 
-  def GetInfo(self, p, num_steps):
+  def GetInfo(self, p):
 
-    obj_pose_error = self.GetPoseError()
-    obj_pose_error_norm = np.linalg.norm(obj_pose_error)
-    done, info = self.CheckDone(obj_pose_error_norm, num_steps)
+    done, info = self.CheckDone(self.obj_pose_error_norm)
 
     return done, info
   
@@ -334,14 +340,14 @@ class StepCoopEnv(ResetCoopEnv):
   def ComputeDesiredObjectWrench(self, p):
     Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
     Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
-    obj_pose_error = self.GetPoseError()
+    self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
     for i in range(len(obj_vel_error)):
       obj_vel_error[i] = -obj_vel_error[i]
     obj_mass_matrix, obj_coriolis_vector, obj_gravity_vector = self.getObjectDynamics(p)
     obj_mass_matrix = np.eye(6)
-    desired_obj_wrench = obj_mass_matrix.dot(Kp * obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
-    # desired_obj_wrench = Kp * obj_pose_error + Kv * obj_vel_error
+    desired_obj_wrench = obj_mass_matrix.dot(Kp * self.obj_pose_error + Kv * obj_vel_error) + obj_coriolis_vector + np.array(obj_gravity_vector)
+    # desired_obj_wrench = Kp * self.obj_pose_error + Kv * obj_vel_error
     self.desired_obj_wrench = desired_obj_wrench
     return desired_obj_wrench
   

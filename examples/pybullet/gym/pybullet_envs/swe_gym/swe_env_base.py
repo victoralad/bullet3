@@ -58,15 +58,15 @@ class CoopEnv(gym.Env):
     self.obtained_reward, self.obj_pose_error_norm, self.standard_control, self.policy = [0.0], [0.0], [0.0], [0.0]
 
   def step(self, action):
-    self.step_coop_env.apply_action(action, p)
+    self.step_coop_env.apply_action(action, self.num_Steps_in_episode, p)
     observation = self.step_coop_env.GetObservation(p)
-    reward, obj_pose_error_norm = self.step_coop_env.GetReward(p, self.num_Steps_in_episode)
+    reward, obj_pose_error_norm = self.step_coop_env.GetReward(p)
 
     self.obtained_reward += [reward]
     self.obj_pose_error_norm += [obj_pose_error_norm]
 
     self.obj_pose_error_norm_sum += obj_pose_error_norm
-    done, info = self.step_coop_env.GetInfo(p, self.num_Steps_in_episode)
+    done, info = self.step_coop_env.GetInfo(p)
     self.sum_reward += reward
     self.num_Steps_in_episode += 1
     print("---------------------------- Step {} ----------------------------".format(self.time_step))
