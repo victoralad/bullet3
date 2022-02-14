@@ -225,9 +225,6 @@ class StepCoopEnv(ResetCoopEnv):
       
     self.reset_eps = done
 
-    # if done:
-    #   print(info)
-    #   quit()
 
     return done, info
 
