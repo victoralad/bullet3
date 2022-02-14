@@ -54,8 +54,8 @@ class CoopEnv(gym.Env):
     self.overall_reward_sum = 0.0
     self.num_Steps_in_episode = 1
     self.obj_pose_error_norm_sum = 0.0
-    self.obj_pose_error_data = [[0.0], [self.obj_pose_error_norm_sum]]
-    self.obtained_reward, self.obj_pose_error_norm, self.standard_control, self.policy = [0.0], [0.0], [0.0], [0.0]
+    self.obj_pose_error_data = [[], []]
+    self.obtained_reward, self.obj_pose_error_norm, self.standard_control, self.policy = [], [], [], []
 
   def step(self, action):
     self.step_coop_env.apply_action(action, self.num_Steps_in_episode, p)

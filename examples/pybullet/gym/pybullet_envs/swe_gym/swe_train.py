@@ -46,8 +46,8 @@ del model
 # with open('data/summary_reward.data', 'wb') as filehandle:
 #     pickle.dump(summary_reward_data, filehandle)
 
-# with open('data/reward.data', 'wb') as filehandle:
-#     pickle.dump(env.reward_data, filehandle)
+with open('data/obtained_reward.data', 'wb') as filehandle:
+    pickle.dump(env.obtained_reward, filehandle)
 
 with open('data/obj_pose_error.data', 'wb') as filehandle:
     pickle.dump(env.obj_pose_error_data, filehandle)
