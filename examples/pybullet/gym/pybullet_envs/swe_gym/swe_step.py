@@ -30,8 +30,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.desired_eeB_wrench = None
     self.action = None
     self.grasp_matrix = None
-    self.mean_dist = [0.0]*6
-    cov_dist_vec = [0.08]*6
+    self.mean_dist = [0.05]*6
+    cov_dist_vec = [0.05]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
     self.horizon = 30000
@@ -43,7 +43,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = True
+    self.use_hard_data = False
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose1 = 1
@@ -59,6 +59,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.num_axis = 3
     self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:self.num_axis]) - np.array(self.initial_obj_pose[:self.num_axis]))
     self.num_steps = None
+
+    np.random.seed(0)
 
 
     # p.setRealTimeSimulation(1)
@@ -273,7 +275,7 @@ class StepCoopEnv(ResetCoopEnv):
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      desired_ee_wrench = self.desired_eeB_wrench# + disturbance
+      desired_ee_wrench = self.desired_eeB_wrench + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
