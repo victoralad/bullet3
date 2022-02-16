@@ -37,13 +37,22 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
+    self.isTrain = True
+    if self.isTrain:
+      self.traj_idx_list = list(range(40))
+      self.antag_joint_pos_list = [None]*40
+      for i in range(40):
+        self.antag_joint_pos_list[i] = np.load('antagonist/data/{}_joints.npy'.format(i+11))
+      self.antag_joint_pos = self.antag_joint_pos_list[0]
+    else:
+      self.antag_joint_pos = np.load('antagonist/data/01_joints.npy')
     self.antag_data_idx = 0
+    self.traj_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = False
+    self.use_hard_data = True
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose1 = 1
@@ -92,34 +101,30 @@ class StepCoopEnv(ResetCoopEnv):
                                 positionGains=[0.1]*self.numJoints,
                                 velocityGains=[0.5]*self.numJoints)
           p.stepSimulation()
-        # for _ in range(1):
-        #   p.setJointMotorControlArray(bodyIndex=self.robotId_B,
-        #                           jointIndices=list(range(self.numJoints)),
-        #                           controlMode=p.POSITION_CONTROL,
-        #                           targetPositions=self.interpol_pos,
-        #                           targetVelocities=[0]*self.numJoints,
-        #                           forces=[100]*self.numJoints,
-        #                           positionGains=[0.1]*self.numJoints,
-        #                           velocityGains=[0.5]*self.numJoints)
-        #   p.stepSimulation()
+        # If the antagonist trajectory is not done playing, step forward through the trajectory.
         if self.antag_data_idx < len(self.antag_joint_pos) - 2:
+          # Ensure that all interpolated points between two waypoints in a trajectory are reached before moving to the next waypoint
           if self.time_mod < self.hard_to_sim_ratio:
             self.time_mod += 1.0
             interpos_ratio = self.time_mod / self.hard_to_sim_ratio
             scaled_pos = interpos_ratio * (self.antag_joint_pos[self.antag_data_idx + 1] - self.antag_joint_pos[self.antag_data_idx])
             self.interpol_pos = self.antag_joint_pos[self.antag_data_idx] + scaled_pos
-            # print("***************************")
-            # print(self.time_mod)
-            # print(self.antag_joint_pos[self.antag_data_idx])
-            # print(self.antag_joint_pos[self.antag_data_idx + 1])
-            # print(self.interpol_pos)
           else:
             self.antag_data_idx += 1
             self.time_mod = 0
-        # if self.antag_data_idx < len(self.antag_joint_pos) - 1:
-        #   self.antag_data_idx += 1
+        # If the episode is completed
         if self.reset_eps:
           self.antag_data_idx = 0
+          if self.isTrain:
+            # Switch to a new trajectory.
+            if self.traj_idx < len(self.traj_idx_list) - 1:
+              self.traj_idx += 1
+            else:
+              # When the list of trajectories is exhausted, reshuffle the trajectory list and go back to the beginning of the list.
+              # random.shuffle(self.traj_idx_list)
+              self.traj_idx = 0
+            idx = self.traj_idx_list[self.traj_idx]
+            self.antag_joint_pos = self.antag_joint_pos_list[idx]
 
     else:
       if (self.useSimulation):
@@ -271,11 +276,11 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      desired_ee_wrench = self.desired_eeB_wrench + disturbance
+      desired_ee_wrench = self.desired_eeB_wrench# + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
