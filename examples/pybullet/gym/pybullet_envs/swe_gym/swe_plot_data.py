@@ -16,7 +16,7 @@ max_pose_error = max(obj_pose_error_data[1])
 
 
 plt.plot(obj_pose_error_data[0], obj_pose_error_data[1])
-plt.plot(obj_pose_error_data[0], obtained_reward_data)
+# plt.plot(obj_pose_error_data[0], obtained_reward_data)
 
 # naming the x axis
 plt.xlabel('num-time-steps')
@@ -30,6 +30,6 @@ plt.title('Overall avg obj pose error norm = {:.3f}'.format(obj_pose_error_data[
 
 # Saving the figure.
 plot_num = 1
-plt.savefig("data/OPEN_TRAIN_plot_{}.jpg".format(plot_num))
+plt.savefig("data/GN_OPEN_TRAIN_plot_{}.jpg".format(plot_num))
 
 plt.show()
