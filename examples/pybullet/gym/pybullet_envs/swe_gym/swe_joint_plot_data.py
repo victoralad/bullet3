@@ -29,6 +29,7 @@ plt.legend(["Residual RL", "Standard"])
   
 # giving a title to my graph
 plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(residual_rl_mean, standard_mean))
+# plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Residual RL = {:.3f}'.format(residual_rl_mean))
 # plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Standard = {:.3f}'.format(obj_pose_error_data_no_rl[1][-1]))
 
 # Saving the figure.
