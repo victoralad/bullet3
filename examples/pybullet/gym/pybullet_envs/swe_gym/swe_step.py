@@ -43,7 +43,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.hard_to_sim_ratio = 10
     self.interpol_pos = self.antag_joint_pos[self.antag_data_idx]
     self.reset_eps = False
-    self.use_hard_data = False
+    self.use_hard_data = True
 
     self.prev_obj_pose = [0, 0, 0]
     self.hasPrevPose1 = 1
@@ -181,7 +181,7 @@ class StepCoopEnv(ResetCoopEnv):
     ee_constr_reward = -self.ee_constraint_reward
 
     # Get pose error of the bar and done condition
-    self.obj_pose_error_norm = np.linalg.norm(self.obj_pose_error)
+    self.obj_pose_error_norm = min(np.linalg.norm(self.obj_pose_error), 2.0)
     
     self.terminal_reward = 0.0
     if self.num_steps > self.horizon:
