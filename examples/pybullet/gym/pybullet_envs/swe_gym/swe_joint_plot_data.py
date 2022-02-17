@@ -13,12 +13,16 @@ with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehand
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
+# print(np.shape(np.array(obj_pose_error_data)))
+# for traj in obj_pose_error_data:
+#     print(np.mean(traj))
+# quit()
 
-plt.plot(list(range(len(obj_pose_error_data[0]))), obj_pose_error_data[1])
-plt.plot(list(range(len(obj_pose_error_data_no_rl[0]))), obj_pose_error_data_no_rl[1])
+plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)
+plt.plot(list(range(len(obj_pose_error_data_no_rl))), obj_pose_error_data_no_rl)
 
-residual_rl_mean = np.mean(obj_pose_error_data[1])
-standard_mean = np.mean(obj_pose_error_data_no_rl[1])
+residual_rl_mean = np.mean(obj_pose_error_data)
+standard_mean = np.mean(obj_pose_error_data_no_rl)
 
 # naming the x axis
 plt.xlabel('Num-time-steps')

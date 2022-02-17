@@ -37,7 +37,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.antag_joint_pos = np.load('antagonist/data/12_joints.npy')
+    self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
     self.antag_data_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
     self.hard_to_sim_ratio = 10
@@ -45,12 +45,10 @@ class StepCoopEnv(ResetCoopEnv):
     self.reset_eps = False
     self.use_hard_data = True
 
-    self.prev_obj_pose = [0, 0, 0]
-    self.hasPrevPose1 = 1
-    self.hasPrevPose2 = 1
-
     self.robotA_base = p.getBasePositionAndOrientation(self.robotId_A)
     self.robotB_base = p.getBasePositionAndOrientation(self.robotId_B)
+
+    self.hasPrevPose1 = 1
     self.obj_pose_error = None
     self.obj_pose_error_norm = None
     self.final_desired_obj_pose = desired_obj_pose
@@ -60,10 +58,22 @@ class StepCoopEnv(ResetCoopEnv):
     self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:self.num_axis]) - np.array(self.initial_obj_pose[:self.num_axis]))
     self.num_steps = None
 
+
     np.random.seed(0)
 
 
     # p.setRealTimeSimulation(1)
+
+  def re_init(self, desired_obj_pose):
+    self.hasPrevPose1 = 1
+    self.obj_pose_error = None
+    self.obj_pose_error_norm = None
+    self.final_desired_obj_pose = desired_obj_pose
+    self.initial_obj_pose = copy.copy(self.env_state["object_pose"])
+    self.desired_obj_pose = copy.copy(self.initial_obj_pose)
+    self.num_axis = 3
+    self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:self.num_axis]) - np.array(self.initial_obj_pose[:self.num_axis]))
+    self.num_steps = None
 
 
   def apply_action(self, action, num_steps, p):
@@ -155,17 +165,6 @@ class StepCoopEnv(ResetCoopEnv):
       p.addUserDebugLine((self.final_desired_obj_pose)[:3], (self.env_state["object_pose"])[:3], [0.8, 0, 0.8], 2, trailDuration)
       self.hasPrevPose1 = 0
 
-    # if (self.reset_eps == False and self.hasPrevPose2):
-    #   #self.trailDuration is duration (in seconds) after debug lines will be removed automatically
-    #   #use 0 for no-removal
-    #   trailDuration = 10000
-    #   print("####################")
-    #   print(self.desired_obj_pose[:3])
-    #   print(self.initial_obj_pose[:3])
-    #   p.addUserDebugLine(self.desired_obj_pose[:3], self.initial_obj_pose[:3], [0.2, 0, 0.8], 2, trailDuration)
-    # else:
-    #   self.hasPrevPose2 = 0
-
     assert len(self.model_input) == 36
     return self.model_input
   
@@ -195,8 +194,6 @@ class StepCoopEnv(ResetCoopEnv):
     obj_pose_error = [0.0] * 6
     for i in range(self.num_axis):
       self.desired_obj_pose[i] = (self.slope[i] * self.num_steps) + self.initial_obj_pose[i]
-    print("#######################")
-    print(self.desired_obj_pose)
     for i in range(len(obj_pose_error)):
       obj_pose_error[i] = self.desired_obj_pose[i] - (self.env_state["object_pose"])[i]
     for i in range(3):

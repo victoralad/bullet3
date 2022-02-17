@@ -18,6 +18,9 @@ class ResetCoopEnv(InitCoopEnv):
     self.constraint_A = self.CreateConstraint(self.kukaId_A, p)
     self.constraint_B = self.CreateConstraint(self.kukaId_B, p)
 
+  def re_init(self, desired_obj_pose):
+    self.desired_obj_pose = desired_obj_pose
+
   def ResetCoop(self, p):
     # Reset the object to the grasp location
     p.resetBasePositionAndOrientation(self.grasped_object, [0, 0.7, 0.02], p.getQuaternionFromEuler([0, 0, 0]))
