@@ -20,7 +20,7 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 class CustomPolicy(FeedForwardPolicy):
     def __init__(self, *args, **kwargs):
         super(CustomPolicy, self).__init__(*args, **kwargs, act_fun=tf.nn.tanh,
-                                           net_arch=[8, 8, dict(pi=[4, 4, 6], vf=[4, 4, 1])],
+                                           net_arch=[16, 8, 8, dict(pi=[8, 4, 6], vf=[4, 4, 1])],
                                            feature_extraction="mlp")
 
 # class CustomPolicy(FeedForwardPolicy):
@@ -30,7 +30,7 @@ class CustomPolicy(FeedForwardPolicy):
 #                                            feature_extraction="mlp")
 
 # model = PPO2(CustomPolicy, env, verbose=1, learning_rate=2.5e-5, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
-model = PPO2(CustomPolicy, env, verbose=1, learning_rate=1.5e-4)
+model = PPO2(CustomPolicy, env, verbose=1, learning_rate=1.5e-5)
 # Train the agent
 total_timesteps = 1000000
 model.learn(total_timesteps=total_timesteps)
