@@ -38,7 +38,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.isTrain = True
+    self.isTrain = False
     if self.isTrain:
       self.traj_idx_list = list(range(40))
       self.antag_joint_pos_list = [None]*40
