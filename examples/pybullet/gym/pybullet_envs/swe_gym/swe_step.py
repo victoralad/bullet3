@@ -38,7 +38,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.isTrain = False
+    self.isTrain = True
     if self.isTrain:
       self.traj_idx_list = list(range(40))
       self.antag_joint_pos_list = [None]*40
@@ -46,7 +46,7 @@ class StepCoopEnv(ResetCoopEnv):
         self.antag_joint_pos_list[i] = np.load('antagonist/data/{}_joints.npy'.format(i+11))
       self.antag_joint_pos = self.antag_joint_pos_list[0]
     else:
-      self.antag_joint_pos = np.load('antagonist/data/02_joints.npy')
+      self.antag_joint_pos = np.load('antagonist/data/01_joints.npy')
     self.antag_data_idx = 0
     self.traj_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.

@@ -22,18 +22,22 @@ class MonteCarlo:
 
     # Check if the sampled goal pose is a valid pose.
     def IsValid(self, goal_poses):
-        goal_poses = copy.copy(goal_poses)
-        goal_upper_bound = [0.2, 0.6, 0.6, 0.1, 0.1, 0.1]
-        # Also use the distance from initial pose to goal pose to check validity
-        return True
+        goal_poses = np.array(copy.copy(goal_poses))
+        obj_init_pose = np.array([0.0, 0.7, 0.02, 0.0, 0.0, 0.0])
+        goal_upper_bound = np.array([0.2, 0.6, 0.6, 0.1, 0.1, 0.1])
+        goal_lower_bound = np.array([-0.2, 0.05, 0.05, -0.1, -0.1, -0.1])
+        # Check if sampled goal pose is within the bounds of a valid goal pose.
+        if all(goal_poses < goal_upper_bound) and all(goal_poses > goal_lower_bound):
+            return True
+        return False
     
     # Return the goalposes and ensure that the goal poses have been updated.
     def GetGoalPoses(self):
         assert self.goal_poses[-1] is not None
-        return self.goal_poses
+        return np.array(self.goal_poses)
 
 monte_c = MonteCarlo(10)
 monte_c.RunSimulation()
 goal_poses = monte_c.GetGoalPoses()
 goal_poses = np.array(goal_poses)
-print(goal_poses)
+# print(goal_poses)
