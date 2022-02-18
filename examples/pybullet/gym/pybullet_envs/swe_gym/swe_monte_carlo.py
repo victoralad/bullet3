@@ -36,7 +36,7 @@ class MonteCarlo:
         assert self.goal_poses[-1] is not None
         return np.array(self.goal_poses)
 
-num_simulations = 5
+num_simulations = 100
 monte_c = MonteCarlo(num_simulations)
 monte_c.RunSimulation()
 goal_poses = monte_c.GetGoalPoses()

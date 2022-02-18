@@ -32,7 +32,8 @@ for goal_pose in env.obj_goal_poses:
     config.time_step = 1
     config.switch_goal_pose = True
     config.goal_pose_idx += 1
-    env.reset()
+    if config.goal_pose_idx < len(env.obj_goal_poses):
+        env.reset()
     overall_OPEN_data += [obj_pose_error_data]
     print("*********************************************************")
 
