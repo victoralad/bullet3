@@ -6,6 +6,9 @@ import numpy as np
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
+folder = "no_rl"
+exp_run = 1
+
 config.switch_goal_pose = False
 config.goal_pose_idx = 0
 config.time_step = 1
@@ -28,6 +31,11 @@ for goal_pose in env.obj_goal_poses:
             elif 3 in info:
                 obj_pose_error_data = []
                 env.reset()
+        config.time_step += 1
+        if config.time_step >= max_test_steps:
+            temp_mean = np.mean(obj_pose_error_data)
+            for _ in range(len(obj_pose_error_data), 30001):
+                obj_pose_error_data += [temp_mean]
         env.render()
     config.time_step = 1
     config.switch_goal_pose = True
@@ -35,8 +43,9 @@ for goal_pose in env.obj_goal_poses:
     if config.goal_pose_idx < len(env.obj_goal_poses):
         env.reset()
     overall_OPEN_data += [obj_pose_error_data]
+    if config.goal_pose_idx == 50:
+        with open('data/{}/midway_obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
+            pickle.dump(overall_OPEN_data, filehandle)
 
-folder = "no_rl"
-exp_run = 1
 with open('data/{}/obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
     pickle.dump(overall_OPEN_data, filehandle)

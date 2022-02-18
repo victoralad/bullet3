@@ -9,13 +9,23 @@ with open('data/rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data = pickle.load(filehandle)
 
-with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
+with open('data/no_rl/midway_obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
-print(np.shape(np.array(obj_pose_error_data)))
+# print(np.shape(np.array(obj_pose_error_data)))
+# overall_mean = []
+# for traj in obj_pose_error_data:
+#     my_mean = np.mean(traj)
+#     overall_mean += [my_mean]
+# print(np.array(overall_mean))
+# print("final")
+# print(np.mean(overall_mean))
+# quit()
+
+print(np.shape(np.array(obj_pose_error_data_no_rl)))
 overall_mean = []
-for traj in obj_pose_error_data:
+for traj in obj_pose_error_data_no_rl:
     my_mean = np.mean(traj)
     overall_mean += [my_mean]
 print(np.array(overall_mean))
