@@ -14,8 +14,13 @@ with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehand
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
 print(np.shape(np.array(obj_pose_error_data)))
+overall_mean = []
 for traj in obj_pose_error_data:
-    print(np.mean(traj))
+    my_mean = np.mean(traj)
+    overall_mean += [my_mean]
+print(np.array(overall_mean))
+print("final")
+print(np.mean(overall_mean))
 quit()
 
 plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)

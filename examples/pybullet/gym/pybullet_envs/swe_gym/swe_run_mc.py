@@ -35,9 +35,8 @@ for goal_pose in env.obj_goal_poses:
     if config.goal_pose_idx < len(env.obj_goal_poses):
         env.reset()
     overall_OPEN_data += [obj_pose_error_data]
-    print("*********************************************************")
 
-folder = "rl"
+folder = "no_rl"
 exp_run = 1
 with open('data/{}/obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
     pickle.dump(overall_OPEN_data, filehandle)
