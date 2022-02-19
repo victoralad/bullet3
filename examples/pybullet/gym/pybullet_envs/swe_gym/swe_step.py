@@ -40,15 +40,16 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
+    num_train_traj = 20
     self.isTrain = True
     if self.isTrain:
-      self.traj_idx_list = list(range(40))
-      self.antag_joint_pos_list = [None]*40
-      for i in range(40):
+      self.traj_idx_list = list(range(num_train_traj))
+      self.antag_joint_pos_list = [None]*num_train_traj
+      for i in range(num_train_traj):
         self.antag_joint_pos_list[i] = np.load('antagonist/data/{}_joints.npy'.format(i+11))
       self.antag_joint_pos = self.antag_joint_pos_list[0]
     else:
-      self.antag_joint_pos = np.load('antagonist/data/01_joints.npy')
+      self.antag_joint_pos = np.load('antagonist/data/06_joints.npy')
     self.antag_data_idx = 0
     self.traj_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
@@ -73,7 +74,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.num_steps = None
 
     self.done_count = False
-    self.track_traj_idx = []
+    self.track_traj_idx = {}
 
     # p.setRealTimeSimulation(1)
 
@@ -122,6 +123,11 @@ class StepCoopEnv(ResetCoopEnv):
             # Switch to a new trajectory.
             if self.traj_idx < len(self.traj_idx_list) - 1:
               self.traj_idx += 1
+              # Track how many unique trajectories have been visited
+              if self.traj_idx in self.track_traj_idx:
+                self.track_traj_idx[self.traj_idx] += 1
+              else:
+                self.track_traj_idx[self.traj_idx] = 0
             else:
               # When the list of trajectories is exhausted, reshuffle the trajectory list and go back to the beginning of the list.
               # random.shuffle(self.traj_idx_list)
@@ -198,7 +204,7 @@ class StepCoopEnv(ResetCoopEnv):
     # decay = np.exp(argument)
     reward = 4.0 - self.obj_pose_error_norm**2 + self.terminal_reward
 
-    return reward, self.obj_pose_error_norm
+    return reward, self.obj_pose_error_norm, self.track_traj_idx
 
   def GetPoseError(self):
     obj_pose_error = [0.0] * 6

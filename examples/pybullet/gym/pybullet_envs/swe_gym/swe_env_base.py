@@ -39,7 +39,8 @@ class CoopEnv(gym.Env):
     self.observation_space = spaces.Box(-obs_space, obs_space)
 
 
-    self.desired_obj_pose = [0.0, 0.5, 0.3, 0.0, 0.0, 0.0] # original
+    # self.desired_obj_pose = [0.0, 0.5, 0.3, 0.0, 0.0, 0.0] # original
+    self.desired_obj_pose = [0.12, 0.41, 0.38, 0.0, 0.0, 0.0] # gotten from mean of final poses of the test trajectories
 
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -60,7 +61,7 @@ class CoopEnv(gym.Env):
   def step(self, action):
     self.step_coop_env.apply_action(action, self.num_Steps_in_episode, p)
     observation = self.step_coop_env.GetObservation(p)
-    reward, obj_pose_error_norm = self.step_coop_env.GetReward(p)
+    reward, obj_pose_error_norm, self.track_traj_idx = self.step_coop_env.GetReward(p)
 
     self.obtained_reward += [reward]
     self.obj_pose_error_norm += [obj_pose_error_norm]

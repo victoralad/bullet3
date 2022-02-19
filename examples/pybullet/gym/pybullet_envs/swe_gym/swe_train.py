@@ -32,11 +32,12 @@ class CustomPolicy(FeedForwardPolicy):
 # model = PPO2(CustomPolicy, env, verbose=1, learning_rate=2.5e-5, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
 model = PPO2(CustomPolicy, env, verbose=1, learning_rate=1.5e-5, seed=1)
 # Train the agent
-total_timesteps = 50000
+total_timesteps = 1000000
 model.learn(total_timesteps=total_timesteps)
 
 print("")
 print("---------- Done training -----------------")
+print(env.track_traj_idx)
 
 model.save("ppo_coop_manip")
 del model
