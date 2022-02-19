@@ -35,3 +35,9 @@ class MonteCarlo:
     def GetGoalPoses(self):
         assert self.goal_poses[-1] is not None
         return np.array(self.goal_poses)
+
+num_simulations = 100
+monte_c = MonteCarlo(num_simulations)
+monte_c.RunSimulation()
+goal_poses = monte_c.GetGoalPoses()
+np.save('data/goal_poses', goal_poses)
