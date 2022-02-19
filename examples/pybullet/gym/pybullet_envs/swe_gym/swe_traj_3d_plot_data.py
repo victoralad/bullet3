@@ -80,6 +80,15 @@ x10 = traj_3d_plot_10[0]
 y10 = traj_3d_plot_10[1]
 z10 = traj_3d_plot_10[2]
 
+x_mean_final_pose = np.mean([x6[-1], x7[-1], x8[-1], x9[-1], x10[-1]])
+y_mean_final_pose = np.mean([y6[-1], y7[-1], y8[-1], y9[-1], y10[-1]])
+z_mean_final_pose = np.mean([z6[-1], z7[-1], z8[-1], z9[-1], z10[-1]])
+
+print("Yello!")
+print(x_mean_final_pose)
+print(y_mean_final_pose)
+print(z_mean_final_pose)
+
 # -------- Plotting ----------
 ax.plot3D(x1, y1, z1)
 ax.plot3D(x2, y2, z2)
