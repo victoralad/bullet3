@@ -9,7 +9,7 @@ from collections import namedtuple
 
 from swe_reset import ResetCoopEnv
 
-np.random.seed(1)
+np.random.seed(3)
 
 class StepCoopEnv(ResetCoopEnv):
 
@@ -32,8 +32,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.desired_eeB_wrench = None
     self.action = None
     self.grasp_matrix = None
-    self.mean_dist = [0.05]*6
-    cov_dist_vec = [0.05]*6
+    self.mean_dist = [0.1]*6
+    cov_dist_vec = [0.1]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
     self.horizon = 30000
