@@ -10,6 +10,8 @@ from collections import namedtuple
 
 from swe_reset import ResetCoopEnv
 
+np.random.seed(0)
+
 class StepCoopEnv(ResetCoopEnv):
 
   def __init__(self, robots, grasped_object, ft_id, desired_obj_pose, p):
@@ -38,7 +40,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.horizon = 30000
     self.env_state = {}
     self.ComputeEnvState(p)
-    self.isTrain = False
+    self.isTrain = True
     if self.isTrain:
       self.traj_idx_list = list(range(40))
       self.antag_joint_pos_list = [None]*40
@@ -70,8 +72,8 @@ class StepCoopEnv(ResetCoopEnv):
     self.slope = (1.0/self.horizon) * (np.array(desired_obj_pose[:self.num_axis]) - np.array(self.initial_obj_pose[:self.num_axis]))
     self.num_steps = None
 
-    np.random.seed(0)
-
+    self.done_count = False
+    self.track_traj_idx = []
 
     # p.setRealTimeSimulation(1)
 
@@ -122,7 +124,7 @@ class StepCoopEnv(ResetCoopEnv):
               self.traj_idx += 1
             else:
               # When the list of trajectories is exhausted, reshuffle the trajectory list and go back to the beginning of the list.
-              random.shuffle(self.traj_idx_list)
+              # random.shuffle(self.traj_idx_list)
               self.traj_idx = 0
             idx = self.traj_idx_list[self.traj_idx]
             self.antag_joint_pos = self.antag_joint_pos_list[idx]
@@ -195,6 +197,7 @@ class StepCoopEnv(ResetCoopEnv):
     # argument = 0.003 * (self.num_steps - self.horizon)
     # decay = np.exp(argument)
     reward = 4.0 - self.obj_pose_error_norm**2 + self.terminal_reward
+
     return reward, self.obj_pose_error_norm
 
   def GetPoseError(self):
