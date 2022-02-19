@@ -56,11 +56,15 @@ class CoopEnv(gym.Env):
     self.obj_pose_error_norm_sum = 0.0
     self.obj_pose_error_data = [[], []]
     self.obtained_reward, self.obj_pose_error_norm, self.standard_control, self.policy = [], [], [], []
+    self.robotB_ee_pose_data = [[], [], []]
 
   def step(self, action):
     self.step_coop_env.apply_action(action, self.num_Steps_in_episode, p)
     observation = self.step_coop_env.GetObservation(p)
-    reward, obj_pose_error_norm = self.step_coop_env.GetReward(p)
+    reward, obj_pose_error_norm, robotB_ee_pose = self.step_coop_env.GetReward(p)
+
+    for i in range(len(self.robotB_ee_pose_data)):
+      self.robotB_ee_pose_data[i] += [robotB_ee_pose[i]]
 
     self.obtained_reward += [reward]
     self.obj_pose_error_norm += [obj_pose_error_norm]

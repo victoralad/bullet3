@@ -20,7 +20,7 @@ class ResetCoopEnv(InitCoopEnv):
 
   def ResetCoop(self, p):
     # Reset the object to the grasp location
-    p.resetBasePositionAndOrientation(self.grasped_object, [0, 0.7, 0.02], p.getQuaternionFromEuler([0, 0, 0]))
+    p.resetBasePositionAndOrientation(self.grasped_object, [0, 2.7, 0.02], p.getQuaternionFromEuler([0, 0, 0]))
     # Reset the robots to a position where the grippers can grasp the object
     robot_A_reset = [1.6215659536342868, 0.9575781843548509, -0.14404269719109372, -1.496128956979969, 0.18552992566925916, 2.4407372489326353,
      1.8958616972085343, 0.01762362413070885, 0.017396558579594615, 0.04, 0.04, 0.0]
@@ -42,8 +42,8 @@ class ResetCoopEnv(InitCoopEnv):
     
     # while 1:
     #   a = 1
-    p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=200)
-    p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=200)
+    # p.changeConstraint(self.constraint_A, gearRatio=-1, erp=0.1, maxForce=200)
+    # p.changeConstraint(self.constraint_B, gearRatio=-1, erp=0.1, maxForce=200)
 
     # Move the object away from the floor after grasping it
 

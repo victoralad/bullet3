@@ -25,9 +25,12 @@ while env.time_step < max_test_steps:
     env.render()
 
 folder = "rl"
-exp_run = 1
+exp_run = 10
 with open('data/{}/obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
     pickle.dump(obj_pose_error_data, filehandle)
+
+with open('data/{}/traj_3d_pose_{}.data'.format(folder, exp_run), 'wb') as filehandle:
+    pickle.dump(env.robotB_ee_pose_data, filehandle)
 
 """
 env = gym.make('CoopEnv-v0')

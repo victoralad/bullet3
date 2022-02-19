@@ -46,7 +46,7 @@ class StepCoopEnv(ResetCoopEnv):
         self.antag_joint_pos_list[i] = np.load('antagonist/data/{}_joints.npy'.format(i+11))
       self.antag_joint_pos = self.antag_joint_pos_list[0]
     else:
-      self.antag_joint_pos = np.load('antagonist/data/01_joints.npy')
+      self.antag_joint_pos = np.load('antagonist/data/10_joints.npy')
     self.antag_data_idx = 0
     self.traj_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
@@ -195,7 +195,7 @@ class StepCoopEnv(ResetCoopEnv):
     # argument = 0.003 * (self.num_steps - self.horizon)
     # decay = np.exp(argument)
     reward = 4.0 - self.obj_pose_error_norm**2 + self.terminal_reward
-    return reward, self.obj_pose_error_norm
+    return reward, self.obj_pose_error_norm, self.env_state["robot_B_ee_pose"]
 
   def GetPoseError(self):
     obj_pose_error = [0.0] * 6
@@ -217,16 +217,16 @@ class StepCoopEnv(ResetCoopEnv):
     if self.num_steps > self.horizon:
       done = True
       info = {1: 'Episode completed successfully.'}
-    elif norm > 10.0 and self.ee_constraint_reward > 1.0:
-      done = True
-      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
-              3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
-    elif norm > 10.0:
-      done = True
-      info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
-    elif self.ee_constraint_reward > 1.0:
-      done = True
-      info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+    # elif norm > 10.0 and self.ee_constraint_reward > 1.0:
+    #   done = True
+    #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm),
+    #           3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
+    # elif norm > 10.0:
+    #   done = True
+    #   info = {2: 'The norm of the object pose error, {}, is significant enough to reset the training episode.'.format(norm)}
+    # elif self.ee_constraint_reward > 1.0:
+    #   done = True
+    #   info = {3: 'The fixed grasp constraint has been violated by this much: {}'.format(self.ee_constraint_reward)}
 
     if done:
       self.desired_obj_pose = copy.copy(self.initial_obj_pose)
