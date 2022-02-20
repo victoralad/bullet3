@@ -41,7 +41,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.env_state = {}
     self.ComputeEnvState(p)
     num_train_traj = 20
-    self.isTrain = True
+    self.isTrain = False
     if self.isTrain:
       self.traj_idx_list = list(range(num_train_traj))
       self.antag_joint_pos_list = [None]*num_train_traj
@@ -49,7 +49,7 @@ class StepCoopEnv(ResetCoopEnv):
         self.antag_joint_pos_list[i] = np.load('antagonist/data/{}_joints.npy'.format(i+11))
       self.antag_joint_pos = self.antag_joint_pos_list[0]
     else:
-      self.antag_joint_pos = np.load('antagonist/data/06_joints.npy')
+      self.antag_joint_pos = np.load('antagonist/data/07_joints.npy')
     self.antag_data_idx = 0
     self.traj_idx = 0
     self.time_mod = 0.0 # This enables the simulation trajectory to match the teleoperated trajectory for the antagonist.
@@ -286,11 +286,11 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      desired_ee_wrench = self.desired_eeB_wrench# + disturbance
+      desired_ee_wrench = self.desired_eeB_wrench + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
