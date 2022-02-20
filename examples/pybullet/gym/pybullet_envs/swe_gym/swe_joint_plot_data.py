@@ -9,7 +9,7 @@ with open('data/rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data = pickle.load(filehandle)
 
-with open('data/no_rl/obj_pose_error_traj_{}.data'.format(9), 'rb') as filehandle:
+with open('data/no_rl/obj_pose_error_traj_{}.data'.format(10), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
