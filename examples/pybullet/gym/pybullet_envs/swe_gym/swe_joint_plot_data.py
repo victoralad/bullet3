@@ -33,7 +33,7 @@ plt.title('Plot of average object pose error norm \n Overall avg obj pose error 
 # plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Standard = {:.3f}'.format(obj_pose_error_data_no_rl[1][-1]))
 
 # Saving the figure.
-plt.savefig("data/joint_plot/multi_traj_OPEN_plot_{}.jpg".format(exp_run))
+plt.savefig("data/joint_plot/multi_OPEN_seed_{}.jpg".format(exp_run))
 
 plt.show()
 
