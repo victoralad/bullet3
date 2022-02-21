@@ -101,13 +101,12 @@ ax.plot3D(x9, y9, z9)
 ax.plot3D(x10, y10, z10)
 
 # naming the x axis
-plt.xlabel('X-axis')
-# naming the y axis
-plt.ylabel('Y-axis')
-# # naming the z axis
-# plt.zlabel('Z-axis')
+ax.set_xlabel('X axis')
+ax.set_ylabel('Y axis')
+ax.set_zlabel('Z axis')
 
 plt.legend(["Trajectory 1", "Trajectory 2", "Trajectory 3", "Trajectory 5", "Trajectory 6", "Trajectory 7", "Trajectory 8", "Trajectory 9", "Trajectory 10"])
+# plt.legend(["Trajectory 1", "Trajectory 2", "Trajectory 3", "Trajectory 4", "Trajectory 5"])
 
 # Saving the figure.
 plt.savefig("data/joint_plot/traj_3d_plot_{}.jpg".format(exp_run))
