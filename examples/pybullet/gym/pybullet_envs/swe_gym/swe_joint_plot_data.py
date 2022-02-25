@@ -1,4 +1,5 @@
 import pickle
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,6 +14,10 @@ with open('data/no_rl/obj_pose_error_traj_{}.data'.format(6), 'rb') as filehandl
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
+mpl.rc("text", usetex=True)
+font = {"family" : "normal", "size"   : 12}
+mpl.rc("font", **font)
+mpl.rcParams["svg.fonttype"] = "none"
 
 plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)
 plt.plot(list(range(len(obj_pose_error_data_no_rl))), obj_pose_error_data_no_rl)
@@ -33,7 +38,7 @@ plt.title('Plot of Object pose error norm \n Avg obj pose error norm: Residual R
 # plt.title('Plot of average object pose error norm \n Overall avg obj pose error norm: Standard = {:.3f}'.format(obj_pose_error_data_no_rl[1][-1]))
 
 # Saving the figure.
-plt.savefig("data/joint_plot/multi_OPEN_seed_{}.jpg".format(exp_run))
+plt.savefig("data/joint_plot/multi_OPEN_seed_{}.svg".format(exp_run))
 
 plt.show()
 
