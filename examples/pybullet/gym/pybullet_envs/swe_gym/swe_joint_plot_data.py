@@ -4,18 +4,24 @@ import numpy as np
 
 
 exp_run = 1
+baseline_exp_run = 100
 
-with open('data/rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
+with open('data/rl/obj_pose_error_{}_seed_1.data'.format(exp_run), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data = pickle.load(filehandle)
 
-with open('data/no_rl/obj_pose_error_{}.data'.format(exp_run), 'rb') as filehandle:
+with open('data/no_rl/obj_pose_error_gauss_{}.data'.format(exp_run), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
+with open('data/no_rl/obj_pose_error_{}.data'.format(baseline_exp_run), 'rb') as filehandle:
+    # read the data as binary data stream
+    obj_pose_error_data_baseline = pickle.load(filehandle)
 
+print(np.mean(obj_pose_error_data_baseline))
 plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)
 plt.plot(list(range(len(obj_pose_error_data_no_rl))), obj_pose_error_data_no_rl)
+plt.plot(list(range(len(obj_pose_error_data_baseline))), obj_pose_error_data_baseline)
 # naming the x axis
 plt.xlabel('Num-time-steps')
 # naming the y axis
@@ -27,6 +33,6 @@ plt.legend(["Residual RL", "Standard"])
 plt.title('Plot of Object pose error norm over a single episode \n Avg object pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(np.mean(obj_pose_error_data), np.mean(obj_pose_error_data_no_rl)))
 
 # Saving the figure.
-plt.savefig("data/joint_plot/eps_OPEN_plot_{}.jpg".format(exp_run))
+plt.savefig("data/joint_plot/eps_OPEN_plot_{}.jpg".format(baseline_exp_run))
 
 plt.show()
