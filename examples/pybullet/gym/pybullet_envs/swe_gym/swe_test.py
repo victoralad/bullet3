@@ -4,7 +4,8 @@ import pickle
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
-model = PPO2.load("ppo_coop_manip_seed_5")
+seed = 1
+model = PPO2.load("ppo_coop_manip_seed_{}".format(seed))
 
 env = gym.make('CoopEnv-v0')
 obs = env.reset()
@@ -24,6 +25,6 @@ while env.time_step < max_test_steps:
     env.render()
 
 folder = "no_rl"
-exp_run = 101
-with open('data/{}/obj_pose_error_{}.data'.format(folder, exp_run), 'wb') as filehandle:
+exp_run = 102
+with open('data/{}/obj_pose_error_{}_seed_{}.data'.format(folder, exp_run, seed), 'wb') as filehandle:
     pickle.dump(obj_pose_error_data, filehandle)
