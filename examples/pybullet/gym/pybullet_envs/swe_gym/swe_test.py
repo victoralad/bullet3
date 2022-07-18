@@ -5,6 +5,7 @@ from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
 seed = 1
+gauss = 1
 model = PPO2.load("ppo_coop_manip_seed_{}".format(seed))
 
 env = gym.make('CoopEnv-v0')
@@ -24,7 +25,16 @@ while env.time_step < max_test_steps:
             env.reset()
     env.render()
 
-folder = "no_rl"
-exp_run = 102
-with open('data/{}/obj_pose_error_{}_seed_{}.data'.format(folder, exp_run, seed), 'wb') as filehandle:
-    pickle.dump(obj_pose_error_data, filehandle)
+folder = "rl"
+exp_run = 103
+if folder == "rl":
+    with open('data/{}/obj_pose_error_{}_seed_{}_gauss_{}.data'.format(folder, exp_run, seed, gauss), 'wb') as filehandle:
+        pickle.dump(obj_pose_error_data, filehandle)
+elif folder == "no_rl":
+    with open('data/{}/obj_pose_error_{}_gauss_{}.data'.format(folder, exp_run, gauss), 'wb') as filehandle:
+        pickle.dump(obj_pose_error_data, filehandle)
+elif folder == "baseline":
+    with open('data/{}/obj_pose_error_baseline_{}.data'.format(folder, exp_run, seed), 'wb') as filehandle:
+        pickle.dump(obj_pose_error_data, filehandle)
+else:
+    "Warning!!! Wrong folder"

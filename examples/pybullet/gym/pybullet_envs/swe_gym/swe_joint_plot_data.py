@@ -3,14 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-exp_run = 102
+exp_run = 103
 baseline_exp_run = 102
+seed = 1
+gauss = 1
 
-with open('data/rl/obj_pose_error_{}_seed_1.data'.format(exp_run), 'rb') as filehandle:
+with open('data/rl/obj_pose_error_{}_seed_{}_gauss_{}.data'.format(exp_run, seed, gauss), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data = pickle.load(filehandle)
 
-with open('data/no_rl/obj_pose_error_gauss_{}.data'.format(exp_run), 'rb') as filehandle:
+with open('data/no_rl/obj_pose_error_{}_gauss_{}.data'.format(exp_run, gauss), 'rb') as filehandle:
     # read the data as binary data stream
     obj_pose_error_data_no_rl = pickle.load(filehandle)
 
