@@ -21,18 +21,18 @@ with open('data/no_rl/obj_pose_error_{}.data'.format(baseline_exp_run), 'rb') as
 print(np.mean(obj_pose_error_data_baseline))
 plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)
 plt.plot(list(range(len(obj_pose_error_data_no_rl))), obj_pose_error_data_no_rl)
-plt.plot(list(range(len(obj_pose_error_data_baseline))), obj_pose_error_data_baseline)
+plt.plot(list(range(len(obj_pose_error_data_baseline))), obj_pose_error_data_baseline, 'm-')
 # naming the x axis
 plt.xlabel('Num-time-steps')
 # naming the y axis
 plt.ylabel('Obj-pose-error-norm')
 
-plt.legend(["Residual RL", "Standard"])
+plt.legend(["Residual RL", "Standard", "Baseline"])
   
 # giving a title to my graph
-plt.title('Plot of Object pose error norm over a single episode \n Avg object pose error norm: Residual RL = {:.3f}, Standard = {:.3f}'.format(np.mean(obj_pose_error_data), np.mean(obj_pose_error_data_no_rl)))
+plt.title('Plot of Object pose error norm over a single episode \n Avg object pose error norm: Residual RL = {:.3f}, Standard = {:.3f}, Baseline = {:.3f}'.format(np.mean(obj_pose_error_data), np.mean(obj_pose_error_data_no_rl), np.mean(obj_pose_error_data_baseline)))
 
 # Saving the figure.
-plt.savefig("data/joint_plot/eps_OPEN_plot_{}.jpg".format(baseline_exp_run))
+plt.savefig("data/joint_plot/eps_OPEN_plot_{}.svg".format(baseline_exp_run))
 
 plt.show()
