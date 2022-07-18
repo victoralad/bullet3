@@ -9,7 +9,7 @@ from collections import namedtuple
 
 from swe_reset import ResetCoopEnv
 
-np.random.seed(1)
+np.random.seed(5)
 
 class StepCoopEnv(ResetCoopEnv):
 
@@ -270,7 +270,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
