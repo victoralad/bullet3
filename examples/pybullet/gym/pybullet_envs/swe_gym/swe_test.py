@@ -4,12 +4,13 @@ import pickle
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
-seed = 3
-gauss = 5
-folder = "no_rl"
-exp_run = 103
+seed = 1
+gauss = 2
+folder = "rl"
+exp_run = 106
+gaussT = 2
 
-model = PPO2.load("ppo_coop_manip_seed_{}".format(seed))
+model = PPO2.load("ppo_coop_manip_seed_{}_gaussT_{}".format(seed, gaussT))
 
 env = gym.make('CoopEnv-v0')
 obs = env.reset()
