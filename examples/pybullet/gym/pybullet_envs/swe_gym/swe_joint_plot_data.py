@@ -2,7 +2,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-seed = 10
+seed = 11
 gauss = 5
 exp_run = 107
 baseline_exp_run = 107
@@ -34,6 +34,6 @@ plt.legend(["Residual RL", "Standard", "Baseline"])
 plt.title('Plot of Object pose error norm over a single episode \n Avg object pose error norm: Residual RL = {:.3f}, Standard = {:.3f}, \n Baseline = {:.3f}'.format(np.mean(obj_pose_error_data), np.mean(obj_pose_error_data_no_rl), np.mean(obj_pose_error_data_baseline)))
 
 # Saving the figure.
-plt.savefig("data/joint_plot/eps_OPEN_plot_{}_seed_{}_gauss_{}.svg".format(exp_run, seed, gauss))
+plt.savefig("data/joint_plot/trial_{}/eps_OPEN_plot_{}_seed_{}_gauss_{}.svg".format(exp_run, exp_run, seed, gauss))
 
 plt.show()
