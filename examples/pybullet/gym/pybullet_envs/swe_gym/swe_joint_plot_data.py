@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 seed = 10
-gauss = 10
+gauss = 1
 exp_run = 107
 baseline_exp_run = 107
 

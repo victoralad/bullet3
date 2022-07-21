@@ -5,8 +5,8 @@ from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
 seed = 10
-gauss = 10
-folder = "baseline"
+gauss = 1
+folder = "no_rl"
 exp_run = 107
 gaussT = 10
 
