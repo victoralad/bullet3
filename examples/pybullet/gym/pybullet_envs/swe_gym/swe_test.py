@@ -4,11 +4,11 @@ import pickle
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
-seed = 1
-gauss = 2
-folder = "rl"
-exp_run = 106
-gaussT = 2
+seed = 10
+gauss = 10
+folder = "baseline"
+exp_run = 107
+gaussT = 10
 
 model = PPO2.load("ppo_coop_manip_seed_{}_gaussT_{}".format(seed, gaussT))
 

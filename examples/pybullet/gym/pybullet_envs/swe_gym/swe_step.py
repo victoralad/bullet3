@@ -9,7 +9,7 @@ from collections import namedtuple
 
 from swe_reset import ResetCoopEnv
 
-np.random.seed(2)
+np.random.seed(10)
 
 class StepCoopEnv(ResetCoopEnv):
 
@@ -32,11 +32,16 @@ class StepCoopEnv(ResetCoopEnv):
     self.desired_eeB_wrench = None
     self.action = None
     self.grasp_matrix = None
-    self.mean_dist = [0.2]*6
-    cov_dist_vec = [0.2]*6
+    self.train = False
+    if self.train:
+      self.mean_dist = [0.1, 0.1, 0.1, 0.01, 0.01, 0.01]
+      cov_dist_vec = [0.1, 0.1, 0.1, 0.05, 0.05, 0.05]
+    else:
+      self.mean_dist = [0.2, 0.2, 0.2, 0.05, 0.05, 0.05]
+      cov_dist_vec = [0.2, 0.2, 0.2, 0.05, 0.05, 0.05]
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 30000
+    self.horizon = 10000
     self.env_state = {}
     self.ComputeEnvState(p)
     self.antag_joint_pos = np.load('antagonist/data/11_joints.npy')
@@ -270,11 +275,11 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
-      desired_ee_wrench = self.desired_eeB_wrench + disturbance
+      desired_ee_wrench = self.desired_eeB_wrench# + disturbance
     robot_inertia_matrix = np.array(p.calculateMassMatrix(robotId, joints_pos))
     robot_inertia_matrix = robot_inertia_matrix[:7, :7]
     # dyn_ctnt_inv = np.linalg.inv(jac.dot(robot_inertia_matrix.dot(jac.T)))
