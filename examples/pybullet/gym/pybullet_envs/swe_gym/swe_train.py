@@ -30,7 +30,7 @@ class CustomPolicy(FeedForwardPolicy):
 #                                            feature_extraction="mlp")
 
 # model = PPO2(CustomPolicy, env, verbose=1, learning_rate=2.5e-4, tensorboard_log="./data/ppo2_coop_manip_tensorboard/")
-model = PPO2(CustomPolicy, env, verbose=1, learning_rate=5.5e-6, seed=6)
+model = PPO2(CustomPolicy, env, verbose=1, learning_rate=5.5e-6, seed=8)
 # Train the agent
 total_timesteps = 2000000
 model.learn(total_timesteps=total_timesteps)

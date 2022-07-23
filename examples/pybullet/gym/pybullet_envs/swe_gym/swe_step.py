@@ -32,7 +32,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.desired_eeB_wrench = None
     self.action = None
     self.grasp_matrix = None
-    self.train = False
+    self.train = True
     if self.train:
       self.mean_dist = [0.1, 0.1, 0.1, 0.01, 0.01, 0.01]
       cov_dist_vec = [0.1, 0.1, 0.1, 0.05, 0.05, 0.05]
