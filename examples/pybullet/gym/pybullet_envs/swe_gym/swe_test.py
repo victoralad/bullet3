@@ -4,9 +4,9 @@ import pickle
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
-seed = 1
+seed = 4
 gauss = 10
-folder = "no_rl"
+folder = "rl"
 exp_run = 111
 gaussT = 1
 

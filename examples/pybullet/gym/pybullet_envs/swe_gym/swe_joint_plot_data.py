@@ -2,7 +2,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-seed = 1
+seed = 4
 gauss = 10
 exp_run = 111
 baseline_exp_run = 111
