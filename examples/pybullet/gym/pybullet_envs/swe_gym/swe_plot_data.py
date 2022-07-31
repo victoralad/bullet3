@@ -16,21 +16,22 @@ min_pose_error = min(obj_pose_error_data)
 max_pose_error = max(obj_pose_error_data)
 
 
-plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)
-# plt.plot(obj_pose_error_data[0], obtained_reward_data)
+# plt.plot(list(range(len(obj_pose_error_data))), obj_pose_error_data)
+plt.plot(list(range(len(obj_pose_error_data))), obtained_reward_data)
 
 # naming the x axis
 plt.xlabel('num-time-steps')
 # # naming the y axis
 # plt.ylabel('Avg-obj-pose-error-norm')
 
-plt.legend(["Avg object-pose-error-norm", "Reward"])
+# plt.legend(["Avg object-pose-error-norm", "Reward"])
   
 # giving a title to my graph
-plt.title('Overall avg obj pose error norm = {:.3f}'.format(np.mean(obj_pose_error_data)))
+# plt.title('Overall avg obj pose error norm = {:.3f}'.format(np.mean(obj_pose_error_data)))
+plt.title('Overal avg Reward = {:.3f}'.format(np.mean(obtained_reward_data)))
 
 # Saving the figure.
 plot_num = 1
-plt.savefig("data/GN_OPEN_TRAIN_plot_{}.jpg".format(plot_num))
+plt.savefig("data/reward_data_{}.jpg".format(plot_num))
 
 plt.show()
