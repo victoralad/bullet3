@@ -5,9 +5,9 @@ from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
 seed = 1
-gauss = 11
-folder = "baseline"
-exp_run = 112
+gauss = 10
+folder = "no_rl"
+exp_run = 111
 gaussT = 1
 
 model = PPO2.load("ppo_coop_manip_seed_{}_gaussT_{}".format(seed, gaussT))
