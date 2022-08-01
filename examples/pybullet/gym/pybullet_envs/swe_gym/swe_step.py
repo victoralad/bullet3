@@ -9,7 +9,7 @@ from collections import namedtuple
 
 from swe_reset import ResetCoopEnv
 
-np.random.seed(1)
+np.random.seed(10)
 
 class StepCoopEnv(ResetCoopEnv):
 
