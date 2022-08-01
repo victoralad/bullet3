@@ -36,3 +36,6 @@ CTestTestFile.cmake
 
 # vim temp files
 *.swp
+
+# Tensorboard data
+examples/pybullet/gym/pybullet_envs/swe_gym/data/ppo2_coop_manip_tensorboard/
