@@ -37,7 +37,7 @@ class StepCoopEnv(ResetCoopEnv):
     cov_dist_vec = [0.05]*6
     self.cov_dist = np.diag(cov_dist_vec)
     self.terminal_reward = 0.0
-    self.horizon = 30000
+    self.horizon = 10000
     self.env_state = {}
     self.ComputeEnvState(p)
     num_train_traj = 20
@@ -90,7 +90,7 @@ class StepCoopEnv(ResetCoopEnv):
     
     if self.use_hard_data:
       if (self.useSimulation):
-        for _ in range(1):
+        for _ in range(2):
           p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
           p.setJointMotorControlArray(bodyIndex=self.robotId_A,
                                 jointIndices=list(range(self.numJoints)),
@@ -137,7 +137,7 @@ class StepCoopEnv(ResetCoopEnv):
 
     else:
       if (self.useSimulation):
-        for _ in range(1):
+        for _ in range(2):
           p.setJointMotorControlArray(self.robotId_A, list(range(self.numJoints)), p.VELOCITY_CONTROL, forces=[0.02]*self.numJoints)
           p.setJointMotorControlArray(bodyIndex=self.robotId_A,
                                 jointIndices=list(range(self.numJoints)),
@@ -286,8 +286,9 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
+      # desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench + np.random.uniform(-0.5, 0.5, 6)
     else:
       disturbance = np.random.multivariate_normal(self.mean_dist, self.cov_dist)
       desired_ee_wrench = self.desired_eeB_wrench + disturbance
@@ -374,13 +375,9 @@ class StepCoopEnv(ResetCoopEnv):
    return transformed_wrench
   
   def ComputeDesiredObjectWrench(self, p):
-    # Kp = 0.6 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
-    # Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0.2, 0.1, 0.1])
-
-    # Kp = 0.6 * np.array([12, 12, 12, 0, 0, 0])
-    # Kv = 0.2 * np.array([1.2, 1.2, 1.5, 0, 0, 0])
-    Kp = 0.3 * np.array([12, 12, 12, 10.5, 10.5, 1.5])
-    Kv = 1.6 * np.array([1.2, 1.2, 1.5, 1.2, 1.2, 1.2])
+    # # AVG COM error = 140
+    Kp = 0.3 * np.array([18, 12, 15, 8.5, 13.5, 2.5])
+    Kv = 1.6 * np.array([1.8, 1.2, 1.5, 1.2, 1.5, 1.8])
 
     self.obj_pose_error = self.GetPoseError()
     obj_vel_error = self.env_state["object_velocity"]
