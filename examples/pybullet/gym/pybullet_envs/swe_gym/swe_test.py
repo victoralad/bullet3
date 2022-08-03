@@ -6,7 +6,7 @@ from stable_baselines import DDPG, PPO2
 
 seed = 5
 gauss = 10
-folder = "rl"
+folder = "random"
 exp_run = 111
 gaussT = 1
 
@@ -33,6 +33,9 @@ if folder == "rl":
     with open('data/{}/obj_pose_error_{}_seed_{}_gauss_{}.data'.format(folder, exp_run, seed, gauss), 'wb') as filehandle:
         pickle.dump(obj_pose_error_data, filehandle)
 elif folder == "no_rl":
+    with open('data/{}/obj_pose_error_{}_gauss_{}.data'.format(folder, exp_run, gauss), 'wb') as filehandle:
+        pickle.dump(obj_pose_error_data, filehandle)
+elif folder == "random":
     with open('data/{}/obj_pose_error_{}_gauss_{}.data'.format(folder, exp_run, gauss), 'wb') as filehandle:
         pickle.dump(obj_pose_error_data, filehandle)
 elif folder == "baseline":
