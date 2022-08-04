@@ -11,7 +11,7 @@ from collections import namedtuple
 from swe_reset import ResetCoopEnv
 
 # np.random.seed(6)
-test_traj = "06"
+test_traj = "10"
 
 class StepCoopEnv(ResetCoopEnv):
 
@@ -42,7 +42,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.env_state = {}
     self.ComputeEnvState(p)
     num_train_traj = 20
-    self.isTrain = True
+    self.isTrain = False
     if self.isTrain:
       self.traj_idx_list = list(range(num_train_traj))
       self.antag_joint_pos_list = [None]*num_train_traj

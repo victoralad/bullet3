@@ -39,3 +39,8 @@ CTestTestFile.cmake
 
 # Tensorboard data
 examples/pybullet/gym/pybullet_envs/swe_gym/data/ppo2_coop_manip_tensorboard
+
+# Trained Policy
+examples/pybullet/gym/pybullet_envs/swe_gym/*.zip
+examples/pybullet/gym/pybullet_envs/swe_gym/old_seeds
+examples/pybullet/gym/pybullet_envs/swe_gym/old_data

@@ -6,7 +6,7 @@ from stable_baselines import DDPG, PPO2
 
 seed = 1
 traj = 10
-folder = "baseline"
+folder = "rl"
 exp_run = 111
 gaussT = 1
 
