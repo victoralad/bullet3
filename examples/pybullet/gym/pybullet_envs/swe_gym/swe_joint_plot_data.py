@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 seed = 1
-traj = 10
+traj = 9
 exp_run = 111
 baseline_exp_run = 111
 

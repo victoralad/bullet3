@@ -4,8 +4,8 @@ import pickle
 from stable_baselines.ddpg.policies import FeedForwardPolicy
 from stable_baselines import DDPG, PPO2
 
-seed = 5
-traj = 7
+seed = 1
+traj = 10
 folder = "baseline"
 exp_run = 111
 gaussT = 1

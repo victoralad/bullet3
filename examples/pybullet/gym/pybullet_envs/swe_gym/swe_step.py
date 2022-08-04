@@ -42,7 +42,7 @@ class StepCoopEnv(ResetCoopEnv):
     self.env_state = {}
     self.ComputeEnvState(p)
     num_train_traj = 20
-    self.isTrain = False
+    self.isTrain = True
     if self.isTrain:
       self.traj_idx_list = list(range(num_train_traj))
       self.antag_joint_pos_list = [None]*num_train_traj
@@ -287,7 +287,7 @@ class StepCoopEnv(ResetCoopEnv):
     nonlinear_forces = nonlinear_forces[:7]
     if robotId == self.robotId_A:
       self.ComputeWrenchFromGraspMatrix(p)
-      desired_ee_wrench = self.desired_eeA_wrench# + np.array(action[:6])
+      desired_ee_wrench = self.desired_eeA_wrench + np.array(action[:6])
       # desired_ee_wrench = np.array(action[:6])
       # desired_ee_wrench = self.desired_eeA_wrench + np.random.uniform(-0.5, 0.5, 6)
     else:
