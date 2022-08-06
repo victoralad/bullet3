@@ -2,7 +2,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-seed = 2
+seed = 4
 traj = 10
 exp_run = 111
 baseline_exp_run = 111
